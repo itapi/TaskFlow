@@ -131,7 +131,7 @@ const Apps = () => {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">ניהול אפליקציות</h1>
-            <p className="text-gray-600">צפייה וניהול אפליקציות במערכת iFilter</p>
+            <p className="text-gray-600">צפייה וניהול אפליקציות במערכת</p>
           </div>
         </div>
       </div>

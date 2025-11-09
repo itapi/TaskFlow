@@ -13,6 +13,20 @@
     "welcomeBack": "ברוכים השבים",
     "pleaseLogin": "אנא התחבר כדי להמשיך"
   },
+  "login": {
+    "subtitle": "ניהול פרויקטים ומשימות",
+    "username": "שם משתמש",
+    "password": "סיסמה",
+    "usernamePlaceholder": "הכנס שם משתמש",
+    "passwordPlaceholder": "הכנס סיסמה",
+    "loginButton": "התחבר",
+    "loggingIn": "מתחבר...",
+    "fillAllFields": "נא למלא את כל השדות",
+    "loginSuccess": "התחברת בהצלחה!",
+    "loginError": "שגיאה בהתחברות",
+    "invalidCredentials": "שם משתמש או סיסמה שגויים",
+    "footer": "TaskFlow © 2024 - מערכת ניהול משימות ופרויקטים"
+  },
   "navigation": {
     "dashboard": "לוח בקרה",
     "projects": "פרויקטים",

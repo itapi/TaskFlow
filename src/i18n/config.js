@@ -3,8 +3,8 @@ import { initReactI18next } from 'react-i18next'
 import en from './locales/en.json'
 import he from './locales/he.json'
 
-// Get saved language from localStorage or default to English
-const savedLanguage = localStorage.getItem('language') || 'en'
+// Get saved language from localStorage or default to Hebrew
+const savedLanguage = localStorage.getItem('language') || 'he'
 
 i18n
   .use(initReactI18next)
@@ -14,7 +14,7 @@ i18n
       he: { translation: he }
     },
     lng: savedLanguage,
-    fallbackLng: 'en',
+    fallbackLng: 'he',
     interpolation: {
       escapeValue: false // React already safes from xss
     }

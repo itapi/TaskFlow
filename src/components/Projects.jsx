@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { FolderKanban, Plus, Edit2, Trash2, Calendar, Users, CheckSquare } from 'lucide-react'
+import { FolderKanban, Plus, Edit2, Trash2, Users, CheckSquare } from 'lucide-react'
 import apiClient from '../utils/api'
 import { showSuccessToast, showErrorToast } from '../utils/toastHelpers'
 import { useModal } from '../contexts/ModalContext'
@@ -49,16 +49,6 @@ function Projects() {
           label: t('projects.description'),
           type: 'textarea',
           placeholder: t('projects.enterProjectDescription')
-        },
-        {
-          name: 'start_date',
-          label: t('projects.startDate'),
-          type: 'date'
-        },
-        {
-          name: 'end_date',
-          label: t('projects.endDate'),
-          type: 'date'
         }
       ],
       onSubmit: async (data) => {
@@ -92,18 +82,6 @@ function Projects() {
           label: t('projects.description'),
           type: 'textarea',
           defaultValue: project.description || ''
-        },
-        {
-          name: 'start_date',
-          label: t('projects.startDate'),
-          type: 'date',
-          defaultValue: project.start_date || ''
-        },
-        {
-          name: 'end_date',
-          label: t('projects.endDate'),
-          type: 'date',
-          defaultValue: project.end_date || ''
         },
         {
           name: 'status',
@@ -173,15 +151,6 @@ function Projects() {
       'cancelled': t('projects.statuses.cancelled')
     }
     return labels[status] || status
-  }
-
-  const formatDate = (dateString) => {
-    if (!dateString) return t('projects.notSet')
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
   }
 
   if (loading) {
@@ -299,23 +268,6 @@ function Projects() {
                       <p className="text-xs text-gray-500">{t('projects.members')}</p>
                       <p className="text-sm font-semibold text-gray-900">{project.member_count || 0}</p>
                     </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center space-x-1 text-gray-500">
-                      <Calendar className="w-3 h-3" />
-                      <span>{t('projects.start')}:</span>
-                    </div>
-                    <span className="text-gray-700 font-medium">{formatDate(project.start_date)}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center space-x-1 text-gray-500">
-                      <Calendar className="w-3 h-3" />
-                      <span>{t('projects.end')}:</span>
-                    </div>
-                    <span className="text-gray-700 font-medium">{formatDate(project.end_date)}</span>
                   </div>
                 </div>
 

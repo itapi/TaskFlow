@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft, Plus, Edit2, Trash2, Calendar, User,
-  AlertCircle, Clock, MessageSquare, Activity
+  AlertCircle, MessageSquare, Activity
 } from 'lucide-react'
 import apiClient from '../utils/api'
 import { showSuccessToast, showErrorToast } from '../utils/toastHelpers'
@@ -313,18 +313,6 @@ function ProjectDetails() {
               <p className="text-gray-600 max-w-3xl">{project.description}</p>
             )}
             <div className="flex items-center space-x-4 mt-4 text-sm text-gray-500">
-              {project.start_date && (
-                <div className="flex items-center space-x-1">
-                  <Calendar className="w-4 h-4" />
-                  <span>{formatDate(project.start_date)?.formatted}</span>
-                </div>
-              )}
-              {project.end_date && (
-                <div className="flex items-center space-x-1">
-                  <Clock className="w-4 h-4" />
-                  <span>{t('tasks.due')} {formatDate(project.end_date)?.formatted}</span>
-                </div>
-              )}
               <div className="flex items-center space-x-1">
                 <User className="w-4 h-4" />
                 <span>{tasks.length} {t('projects.tasks').toLowerCase()}</span>

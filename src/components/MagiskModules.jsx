@@ -104,7 +104,7 @@ const MagiskModules = () => {
                 <br />
                 <strong>דוגמאות:</strong>
                 <br />
-                • <code className="bg-blue-100 px-1 rounded">iFilter/modules/</code> - לשמירה בספריית iFilter
+                • <code className="bg-blue-100 px-1 rounded">custom/modules/</code> - לשמירה בספרייה מותאמת אישית
                 <br />
                 • <code className="bg-blue-100 px-1 rounded">magisk-custom/</code> - בספריית uploads
                 <br />

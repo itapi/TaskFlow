@@ -13,6 +13,20 @@
     "welcomeBack": "Welcome back",
     "pleaseLogin": "Please login to continue"
   },
+  "login": {
+    "subtitle": "Project & Task Management",
+    "username": "Username",
+    "password": "Password",
+    "usernamePlaceholder": "Enter username",
+    "passwordPlaceholder": "Enter password",
+    "loginButton": "Login",
+    "loggingIn": "Logging in...",
+    "fillAllFields": "Please fill in all fields",
+    "loginSuccess": "Logged in successfully!",
+    "loginError": "Login error",
+    "invalidCredentials": "Invalid username or password",
+    "footer": "TaskFlow © 2024 - Project & Task Management System"
+  },
   "navigation": {
     "dashboard": "Dashboard",
     "projects": "Projects",
