@@ -57,6 +57,18 @@ export const UserProvider = ({ children }) => {
     localStorage.setItem('userData', JSON.stringify(updatedUser))
   }
 
+  const refreshUser = async () => {
+    try {
+      const response = await apiClient.getCurrentUser()
+      if (response.success && response.data) {
+        setUser(response.data)
+        localStorage.setItem('userData', JSON.stringify(response.data))
+      }
+    } catch (error) {
+      console.error('Failed to refresh user data:', error)
+    }
+  }
+
   const value = {
     user,
     isLoggedIn,
@@ -64,6 +76,7 @@ export const UserProvider = ({ children }) => {
     login,
     logout,
     updateUser,
+    refreshUser,
     // Computed values for easy access
     isAdmin: user?.user_type === 'admin',
     userName: user ? `${user.first_name} ${user.last_name}` : '',

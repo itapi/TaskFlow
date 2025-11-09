@@ -1,16 +1,20 @@
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import PropTypes from "prop-types";
+import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Cell } from "./Cell";
 
-export const Table = ({ 
-  tableConfig, 
-  onLoadMore, 
-  hasMore = false, 
+export const Table = ({
+  tableConfig,
+  onLoadMore,
+  hasMore = false,
   onUpdateData,
   onSelectionChange,
   selectable = false,
   stickyHeader = false,
   loading = false,
+  onSortChange,
+  sortColumn: externalSortColumn = null,
+  sortDirection: externalSortDirection = 'asc',
 }) => {
   const { columns, data, onRowClick } = tableConfig;
   const observerRef = useRef(null);
@@ -23,6 +27,10 @@ export const Table = ({
   const [selectedRows, setSelectedRows] = useState({});
   // Track if all rows are selected
   const [selectAll, setSelectAll] = useState(false);
+
+  // Use external sorting state if provided
+  const sortColumn = externalSortColumn;
+  const sortDirection = externalSortDirection;
 
   // Update local data when props change
   useEffect(() => {
@@ -131,20 +139,36 @@ export const Table = ({
   const handleSelectAll = () => {
     const newSelectAll = !selectAll;
     let newSelectedRows = {};
-    
+
     if (newSelectAll) {
       // Select all rows
       localData.forEach(row => {
         newSelectedRows[row.id] = true;
       });
     }
-    
+
     setSelectAll(newSelectAll);
     setSelectedRows(newSelectedRows);
-    
+
     // Notify parent component about selection change
     if (onSelectionChange) {
       onSelectionChange(Object.keys(newSelectedRows).map(id => id));
+    }
+  };
+
+  // Handle column sort - notify parent to refetch data
+  const handleSort = (column) => {
+    if (!column.sortable || !onSortChange) return;
+
+    const columnKey = column.sortKey || column.key || column.id;
+
+    if (sortColumn === columnKey) {
+      // Toggle direction if clicking the same column
+      const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+      onSortChange(columnKey, newDirection);
+    } else {
+      // Set new column and default to ascending
+      onSortChange(columnKey, 'asc');
     }
   };
 
@@ -165,14 +189,38 @@ export const Table = ({
                   />
                 </th>
               )}
-              {columns.map((column) => (
-                <th 
-                  key={column.id} 
-                  className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  {column.label}
-                </th>
-              ))}
+              {columns.map((column) => {
+                const columnKey = column.sortKey || column.key || column.id;
+                const isSorted = sortColumn === columnKey;
+                const isSortable = column.sortable;
+
+                return (
+                  <th
+                    key={column.id}
+                    className={`px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                      isSortable ? 'cursor-pointer select-none hover:bg-gray-100 transition-colors' : ''
+                    }`}
+                    onClick={() => handleSort(column)}
+                  >
+                    <div className="flex items-center justify-end space-x-reverse space-x-1">
+                      <span>{column.label}</span>
+                      {isSortable && (
+                        <span className="mr-1">
+                          {!isSorted && (
+                            <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
+                          )}
+                          {isSorted && sortDirection === 'asc' && (
+                            <ArrowUp className="w-3.5 h-3.5 text-purple-600" />
+                          )}
+                          {isSorted && sortDirection === 'desc' && (
+                            <ArrowDown className="w-3.5 h-3.5 text-purple-600" />
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -261,4 +309,7 @@ Table.propTypes = {
   selectable: PropTypes.bool,
   stickyHeader: PropTypes.bool,
   loading: PropTypes.bool,
+  onSortChange: PropTypes.func,
+  sortColumn: PropTypes.string,
+  sortDirection: PropTypes.oneOf(['asc', 'desc']),
 };

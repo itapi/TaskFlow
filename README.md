@@ -1,12 +1,37 @@
-# React + Vite
+# TaskFlow - Project & Task Management
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern task management system built with React and PHP.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Project Management**: Organize tasks into projects
+- **Task Tracking**: Create and manage tasks with extended statuses (Not Started, In Progress, Backlog, Review, Done)
+- **Task Assignment**: Assign tasks to team members
+- **Priority Levels**: Set task priorities (High, Medium, Low)
+- **Due Dates**: Track deadlines and get reminders
+- **Comments & Activity**: Collaborate with team members on tasks
+- **User Management**: Manage team members and permissions
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Frontend**: React 19 + Vite
+- **Styling**: Tailwind CSS 4
+- **Backend**: PHP REST API
+- **UI**: Drag & Drop support, Toast notifications, Tooltips
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+## Development
+
+The project uses Vite for fast development and hot module replacement.

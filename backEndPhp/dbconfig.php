@@ -10,7 +10,7 @@ function getDatabaseConfig() {
         'server' => getenv('DB_SERVER') ?: 'localhost',
         'username' => getenv('DB_USERNAME') ?: 'u435853548_itapi',
         'password' => getenv('DB_PASSWORD') ?: 'Itapi1234!',
-        'database' => getenv('DB_NAME') ?: 'u435853548_iFilter'
+        'database' => getenv('DB_NAME') ?: 'taskflow'
     ];
 }
 

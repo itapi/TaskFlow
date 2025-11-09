@@ -2,6 +2,7 @@ import React from 'react'
 import { useModal } from '../contexts/ModalContext'
 import { Modal } from './Modal/Modal'
 import ConfirmModal from './Modal/ConfirmModal'
+import FormModal from './Modal/FormModal'
 
 const GlobalModal = () => {
   const { modalState, closeModal } = useModal()
@@ -15,6 +16,22 @@ const GlobalModal = () => {
             onConfirm={modalState.onConfirm}
             onCancel={modalState.onCancel}
             {...modalState.props}
+          />
+        )
+      case 'form':
+        return (
+          <FormModal
+            fields={modalState.fields}
+            onSubmit={async (data) => {
+              try {
+                await modalState.onSubmit(data)
+                closeModal()
+              } catch (error) {
+                // Error is handled by the form component
+                throw error
+              }
+            }}
+            onCancel={closeModal}
           />
         )
       default:

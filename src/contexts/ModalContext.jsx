@@ -16,6 +16,8 @@ export const ModalProvider = ({ children }) => {
     type: null,
     title: '',
     content: null,
+    fields: null,
+    onSubmit: null,
     props: {},
     onConfirm: null,
     onCancel: null,
@@ -23,12 +25,75 @@ export const ModalProvider = ({ children }) => {
     footer: null
   })
 
-  const openModal = ({ type, title, content, props = {}, onConfirm, onCancel, size = 'lg', footer = null }) => {
+  const openModal = ({
+    type,
+    title,
+    content,
+    fields,
+    onSubmit,
+    message,
+    confirmText,
+    confirmVariant,
+    props = {},
+    onConfirm,
+    onCancel,
+    size = 'lg',
+    footer = null
+  }) => {
+    // Handle confirm modals
+    if (type === 'confirm') {
+      setModalState({
+        isOpen: true,
+        type: 'confirm',
+        title,
+        content: message,
+        fields: null,
+        onSubmit: null,
+        props: { confirmText, cancelText: 'Cancel', variant: confirmVariant || 'danger', ...props },
+        onConfirm: async () => {
+          try {
+            if (onConfirm) await onConfirm()
+            closeModal()
+          } catch (error) {
+            console.error('Confirm action failed:', error)
+          }
+        },
+        onCancel: () => {
+          if (onCancel) onCancel()
+          closeModal()
+        },
+        size,
+        footer
+      })
+      return
+    }
+
+    // Handle form modals
+    if (fields) {
+      setModalState({
+        isOpen: true,
+        type: 'form',
+        title,
+        content: null,
+        fields,
+        onSubmit,
+        props,
+        onConfirm: null,
+        onCancel: () => closeModal(),
+        size,
+        footer
+      })
+      return
+    }
+
+    // Handle custom content modals
     setModalState({
       isOpen: true,
       type,
       title,
       content,
+      fields: null,
+      onSubmit: null,
       props,
       onConfirm,
       onCancel,
@@ -42,7 +107,7 @@ export const ModalProvider = ({ children }) => {
       ...prev,
       isOpen: false
     }))
-    
+
     // Clear modal after animation
     setTimeout(() => {
       setModalState({
@@ -50,6 +115,8 @@ export const ModalProvider = ({ children }) => {
         type: null,
         title: '',
         content: null,
+        fields: null,
+        onSubmit: null,
         props: {},
         onConfirm: null,
         onCancel: null,

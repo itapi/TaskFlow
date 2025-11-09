@@ -129,7 +129,7 @@ export const Modal = ({
         )}
 
         {/* Body */}
-        <div className={`overflow-y-auto ${bodyClassName}`} style={{ maxHeight: 'calc(90vh - 140px)' }}>
+        <div className={`overflow-y-auto p-6 ${bodyClassName}`} style={{ maxHeight: 'calc(90vh - 140px)' }}>
           {children}
         </div>
 

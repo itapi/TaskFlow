@@ -38,6 +38,10 @@ const ClientsTable = () => {
     inactive: 0
   })
   const [selectedClients, setSelectedClients] = useState([])
+
+  // Sorting state
+  const [sortColumn, setSortColumn] = useState(null)
+  const [sortDirection, setSortDirection] = useState('asc')
   
   // Delete modal state
   const [deleteModal, setDeleteModal] = useState({
@@ -62,6 +66,13 @@ const ClientsTable = () => {
     loadFilteredData()
   }, [statusFilter])
 
+  // Reload data when sorting changes
+  useEffect(() => {
+    if (sortColumn !== null) {
+      loadFilteredData()
+    }
+  }, [sortColumn, sortDirection])
+
   // Handle search term changes (debounced by component)
   const handleSearchChange = (newSearchTerm) => {
     setSearchTerm(newSearchTerm)
@@ -72,12 +83,14 @@ const ClientsTable = () => {
     try {
       setSearchLoading(true)
       setCurrentPage(1)
-      
+
       const filters = {
         plan_status: statusFilter,
-        search: term
+        search: term,
+        sort: sortColumn,
+        order: sortDirection
       }
-      
+
       const response = await apiClient.getClientsWithDetails(1, itemsPerPage, filters)
       
       if (response.success) {
@@ -127,12 +140,14 @@ const ClientsTable = () => {
     try {
       setFilterLoading(true)
       setCurrentPage(1)
-      
+
       const filters = {
         plan_status: statusFilter,
-        search: searchTerm
+        search: searchTerm,
+        sort: sortColumn,
+        order: sortDirection
       }
-      
+
       const response = await apiClient.getClientsWithDetails(1, itemsPerPage, filters)
       
       if (response.success) {
@@ -152,16 +167,18 @@ const ClientsTable = () => {
 
   const loadMoreClients = async () => {
     if (loadingMore || !hasMore) return
-    
+
     try {
       setLoadingMore(true)
       const nextPage = currentPage + 1
-      
+
       const filters = {
         plan_status: statusFilter,
-        search: searchTerm
+        search: searchTerm,
+        sort: sortColumn,
+        order: sortDirection
       }
-      
+
       const response = await apiClient.getClientsWithDetails(nextPage, itemsPerPage, filters)
       
       if (response.success) {
@@ -243,6 +260,11 @@ const ClientsTable = () => {
 
   const handleDeleteCancel = () => {
     setDeleteModal({ isOpen: false, client: null })
+  }
+
+  const handleSortChange = (column, direction) => {
+    setSortColumn(column)
+    setSortDirection(direction)
   }
 
 
@@ -349,6 +371,7 @@ const ClientsTable = () => {
       key: 'client_unique_id',
       label: 'מספר לקוח',
       type: 'text',
+      sortable: true,
       render: (row) => (
         <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
           #{row.client_unique_id}
@@ -360,6 +383,8 @@ const ClientsTable = () => {
       key: 'full_name',
       label: 'שם מלא ',
       type: 'text',
+      sortable: true,
+      sortKey: 'full_name',
       render: (row) => (
         <div className="flex items-center   space-x-3">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
@@ -380,6 +405,7 @@ const ClientsTable = () => {
       key: 'email',
       label: 'אימייל',
       type: 'text',
+      sortable: true,
       render: (row) => (
         <div className="text-sm text-gray-900">
           {row.email || 'לא זמין'}
@@ -391,6 +417,8 @@ const ClientsTable = () => {
       key: 'plan_name',
       label: 'תוכנית',
       type: 'text',
+      sortable: true,
+      sortKey: 'plan_name',
       render: (row) => (
         <div>
           <div className="font-medium text-gray-900">{row.plan_name || 'ללא תוכנית'}</div>
@@ -413,6 +441,7 @@ const ClientsTable = () => {
       key: 'plan_status',
       label: 'סטטוס מנוי',
       type: 'custom',
+      sortable: true,
       render: (row) => getStatusBadge(row.plan_status, row)
     },
     
@@ -422,6 +451,8 @@ const ClientsTable = () => {
       key: 'model',
       label: 'מכשיר',
       type: 'text',
+      sortable: true,
+      sortKey: 'model',
       render: (row) => (
         <div className="flex items-center   space-x-2">
           <Smartphone className="w-4 h-4 text-gray-400" />
@@ -437,6 +468,7 @@ const ClientsTable = () => {
       key: 'sync_status',
       label: 'סטטוס סינכרון',
       type: 'custom',
+      sortable: true,
       render: (row) => (
         <div>
           {getSyncStatusBadge(row.sync_status)}
@@ -451,6 +483,7 @@ const ClientsTable = () => {
       key: 'registration_date',
       label: 'תאריך הרשמה',
       type: 'date',
+      sortable: true,
       render: (row) => formatDate(row.registration_date)
     },
     {
@@ -647,6 +680,9 @@ const ClientsTable = () => {
         loading={loadingMore || searchLoading || filterLoading}
         stickyHeader={true}
         onSelectionChange={setSelectedClients}
+        onSortChange={handleSortChange}
+        sortColumn={sortColumn}
+        sortDirection={sortDirection}
       />
 
       {/* Selection Actions */}

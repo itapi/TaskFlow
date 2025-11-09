@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 class AuthController {
     private $conn;
-    private $secretKey = 'iFilter_Secret_Key_2025'; // In production, use environment variable
+    private $secretKey = 'TaskFlow_Secret_Key_2025'; // In production, use environment variable
 
     public function __construct() {
         $this->conn = getDBConnection();
@@ -23,7 +23,7 @@ class AuthController {
 
     public function handleRequest() {
         $method = $_SERVER['REQUEST_METHOD'];
-        
+
         if ($method === 'GET') {
             $action = $_GET['action'] ?? '';
         } else {
@@ -48,7 +48,7 @@ class AuthController {
 
     private function login() {
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         $username = $input['username'] ?? '';
         $password = $input['password'] ?? '';
 
@@ -57,17 +57,22 @@ class AuthController {
         }
 
         // Prepare statement to prevent SQL injection
-        $stmt = $this->conn->prepare("SELECT id, username, password, first_name, last_name, user_type FROM users WHERE username = ?");
-        $stmt->bind_param("s", $username);
+        $stmt = $this->conn->prepare("SELECT id, username, email, password, full_name, role, avatar_url, is_active FROM users WHERE username = ? OR email = ?");
+        $stmt->bind_param("ss", $username, $username);
         $stmt->execute();
         $result = $stmt->get_result();
-        
+
         if ($result->num_rows === 0) {
             $this->sendError('Invalid username or password', 401);
         }
 
         $user = $result->fetch_assoc();
-        
+
+        // Check if user is active
+        if (!$user['is_active']) {
+            $this->sendError('Account is deactivated', 403);
+        }
+
         // Verify password
         if (!password_verify($password, $user['password'])) {
             $this->sendError('Invalid username or password', 401);
@@ -77,7 +82,7 @@ class AuthController {
         $token = $this->generateToken($user);
 
         // Update last login time
-        $updateStmt = $this->conn->prepare("UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+        $updateStmt = $this->conn->prepare("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?");
         $updateStmt->bind_param("i", $user['id']);
         $updateStmt->execute();
 
@@ -88,9 +93,10 @@ class AuthController {
             'user' => [
                 'id' => $user['id'],
                 'username' => $user['username'],
-                'first_name' => $user['first_name'],
-                'last_name' => $user['last_name'],
-                'user_type' => $user['user_type']
+                'email' => $user['email'],
+                'full_name' => $user['full_name'],
+                'role' => $user['role'],
+                'avatar_url' => $user['avatar_url']
             ]
         ]);
     }
@@ -112,11 +118,11 @@ class AuthController {
         }
 
         // Get fresh user data from database
-        $stmt = $this->conn->prepare("SELECT id, username, first_name, last_name, user_type, created_at FROM users WHERE id = ?");
-        $stmt->bind_param("i", $userData['user_id']);
+        $stmt = $this->conn->prepare("SELECT id, username, email, full_name, role, avatar_url, created_at FROM users WHERE id = ?");
+        $stmt->bind_param("i", $userData['id']);
         $stmt->execute();
         $result = $stmt->get_result();
-        
+
         if ($result->num_rows === 0) {
             $this->sendError('User not found', 404);
         }
@@ -128,10 +134,13 @@ class AuthController {
     private function generateToken($user) {
         $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
         $payload = json_encode([
-            'user_id' => $user['id'],
+            'id' => $user['id'],
             'username' => $user['username'],
-            'user_type' => $user['user_type'],
-            'exp' => time() + (24 * 60 * 60) // 24 hours expiration
+            'email' => $user['email'],
+            'full_name' => $user['full_name'],
+            'role' => $user['role'],
+            'avatar_url' => $user['avatar_url'] ?? null,
+            'exp' => time() + (7 * 24 * 60 * 60) // 7 days expiration
         ]);
 
         $headerEncoded = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
@@ -170,11 +179,11 @@ class AuthController {
     private function getTokenFromHeader() {
         $headers = getallheaders();
         $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
-        
+
         if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
             return $matches[1];
         }
-        
+
         return null;
     }
 

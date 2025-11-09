@@ -17,6 +17,12 @@ export const toastInfo = (message) => {
   toast.info(message)
 }
 
+// Aliases for alternative naming convention
+export const showSuccessToast = toastSuccess
+export const showErrorToast = toastError
+export const showWarningToast = toastWarning
+export const showInfoToast = toastInfo
+
 // Common success messages
 export const SUCCESS_MESSAGES = {
   LOGIN: 'התחברת בהצלחה!',

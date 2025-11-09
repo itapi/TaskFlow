@@ -4,6 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/iFilterDashboard-FrontEnd/',   // 👈 must match your GitHub repo name
+  base: '/taskflow/',   // 👈 must match your Router basename
   plugins: [react(), tailwindcss()],
 })
