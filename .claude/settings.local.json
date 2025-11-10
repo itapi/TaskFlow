@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/C:\\Users\\itamary_binaa\\Downloads/**)",
+      "Write(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main/**)",
+      "Edit(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main/**)",
+      "MultiEdit(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main/**)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(git:*)",
+      "Bash(php:*)",
+      "Bash(ls:*)",
+      "Bash(cd:*)",
+      "Bash(dir:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(mkdir:*)",
+      "Bash(rmdir:*)",
+      "Bash(chmod:*)",
+      "Glob(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main/**)",
+      "Grep(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main/**)",
+      "Read(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main/**)",
+      "Read(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main/**)",
+      "Read(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main\\src/**)",
+      "Read(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main\\src\\components/**)",
+      "Read(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main\\src\\components/**)",
+      "Read(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main\\src\\components/**)",
+      "mcp__ide__getDiagnostics"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
