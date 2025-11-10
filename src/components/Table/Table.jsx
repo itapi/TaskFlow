@@ -202,7 +202,7 @@ export const Table = ({
                     }`}
                     onClick={() => handleSort(column)}
                   >
-                    <div className="flex items-center justify-end space-x-reverse space-x-1">
+                    <div className="flex items-center justify-start space-x-reverse space-x-1">
                       <span>{column.label}</span>
                       {isSortable && (
                         <span className="mr-1">

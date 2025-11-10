@@ -300,7 +300,9 @@
     "noTasksFound": "No tasks found",
     "tryAdjustingFilters": "Try adjusting your filters or check back later",
     "tasksAssignedToYou": "Tasks assigned to you",
-    "never": "Never"
+    "never": "Never",
+    "table": "Table",
+    "kanban": "Kanban"
   },
   "messages": {
     "confirmDelete": "Are you sure you want to delete this?",

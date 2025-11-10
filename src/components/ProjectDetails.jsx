@@ -3,13 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft, Plus, Edit2, Trash2, Calendar, User,
-  AlertCircle, MessageSquare, Activity
+  AlertCircle, MessageSquare, Activity, LayoutGrid, List
 } from 'lucide-react'
 import apiClient from '../utils/api'
 import { showSuccessToast, showErrorToast } from '../utils/toastHelpers'
 import { useModal } from '../contexts/ModalContext'
 import { useUser } from '../contexts/UserContext'
 import Loader from './Loader'
+import { Table } from './Table/Table'
 
 function ProjectDetails() {
   const { projectId } = useParams()
@@ -21,6 +22,7 @@ function ProjectDetails() {
   const [tasks, setTasks] = useState([])
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState('table') // 'table' or 'kanban'
 
   const statuses = [
     { id: 'backlog', label: t('tasks.statuses.backlog'), color: 'gray' },
@@ -261,6 +263,130 @@ function ProjectDetails() {
     return tasks.filter(task => task.status === status)
   }
 
+  // Table columns configuration
+  const tableColumns = [
+    {
+      id: 'title',
+      key: 'title',
+      label: t('tasks.taskTitle'),
+      type: 'custom',
+      render: (row) => (
+        <div className="font-medium text-gray-900">{row.title}</div>
+      )
+    },
+    {
+      id: 'status',
+      key: 'status',
+      label: t('tasks.status'),
+      type: 'custom',
+      render: (row) => {
+        const status = statuses.find(s => s.id === row.status)
+        const colorClasses = {
+          gray: 'bg-gray-100 text-gray-800',
+          yellow: 'bg-yellow-100 text-yellow-800',
+          blue: 'bg-blue-100 text-blue-800',
+          purple: 'bg-purple-100 text-purple-800',
+          green: 'bg-green-100 text-green-800'
+        }
+        return (
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClasses[status?.color] || 'bg-gray-100 text-gray-800'}`}>
+            {status?.label || row.status}
+          </span>
+        )
+      }
+    },
+    {
+      id: 'priority',
+      key: 'priority',
+      label: t('tasks.priority'),
+      type: 'custom',
+      render: (row) => (
+        <span className={`px-2 py-1 rounded text-xs font-medium capitalize border ${getPriorityColor(row.priority)}`}>
+          {t(`tasks.priorities.${row.priority}`)}
+        </span>
+      )
+    },
+    {
+      id: 'assigned_to',
+      key: 'assigned_to',
+      label: t('tasks.assignTo'),
+      type: 'custom',
+      render: (row) => {
+        const assignedUser = getAssignedUser(row.assigned_to)
+        if (!assignedUser) {
+          return <span className="text-gray-400 text-sm">{t('tasks.unassigned')}</span>
+        }
+        return (
+          <div className="flex items-center space-x-2">
+            <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs font-semibold">
+                {(assignedUser.full_name || assignedUser.username).substring(0, 1).toUpperCase()}
+              </span>
+            </div>
+            <span className="text-sm">{assignedUser.full_name || assignedUser.username}</span>
+          </div>
+        )
+      }
+    },
+    {
+      id: 'due_date',
+      key: 'due_date',
+      label: t('tasks.dueDate'),
+      type: 'custom',
+      render: (row) => {
+        const dueDate = formatDate(row.due_date)
+        if (!dueDate) {
+          return <span className="text-gray-400 text-sm">-</span>
+        }
+        return (
+          <div className={`flex items-center space-x-1 text-xs ${
+            dueDate.isOverdue ? 'text-red-600 font-medium' : 'text-gray-500'
+          }`}>
+            <Calendar className="w-3 h-3" />
+            <span>{dueDate.formatted}</span>
+          </div>
+        )
+      }
+    },
+    {
+      id: 'actions',
+      key: 'actions',
+      label: t('common.actions'),
+      type: 'custom',
+      render: (row) => (
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              handleEditTask(row)
+            }}
+            className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
+            title={t('tasks.editTaskTitle')}
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              handleDeleteTask(row)
+            }}
+            className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+            title={t('tasks.deleteTaskTitle')}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      )
+    }
+  ]
+
+  const tableConfig = {
+    columns: tableColumns,
+    data: tasks,
+    onRowClick: (task) => handleEditTask(task),
+    tableType: 'tasks'
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -297,13 +423,6 @@ function ProjectDetails() {
             <ArrowLeft className="w-5 h-5" />
             <span>{t('tasks.backToProjects')}</span>
           </button>
-          <button
-            onClick={handleCreateTask}
-            className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
-          >
-            <Plus className="w-5 h-5" />
-            <span>{t('tasks.newTask')}</span>
-          </button>
         </div>
 
         <div className="flex items-start justify-between">
@@ -322,9 +441,62 @@ function ProjectDetails() {
         </div>
       </div>
 
+      {/* View Controls */}
+      <div className="px-8 py-4 ">
+        <div className="flex items-center justify-end space-x-3">
+          {/* View Toggle */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-colors ${
+                viewMode === 'table'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title="Table View"
+            >
+              <List className="w-4 h-4" />
+              <span className="text-sm font-medium">{t('common.table')}</span>
+            </button>
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-colors ${
+                viewMode === 'kanban'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title="Kanban View"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span className="text-sm font-medium">{t('common.kanban')}</span>
+            </button>
+          </div>
+
+          {/* New Task Button */}
+          <button
+            onClick={handleCreateTask}
+            className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            <Plus className="w-5 h-5" />
+            <span>{t('tasks.newTask')}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Table View */}
+      {viewMode === 'table' && (
+        <div className="flex-1 overflow-auto p-8">
+          <Table
+            tableConfig={tableConfig}
+            stickyHeader={true}
+          />
+        </div>
+      )}
+
       {/* Kanban Board */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
-        <div className="flex space-x-4 p-8 h-full">
+      {viewMode === 'kanban' && (
+        <div className="flex-1 overflow-x-auto overflow-y-hidden">
+          <div className="flex space-x-4 p-8 h-full">
           {statuses.map((status) => {
             const statusTasks = getTasksByStatus(status.id)
             const colorClasses = {
@@ -451,8 +623,9 @@ function ProjectDetails() {
               </div>
             )
           })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

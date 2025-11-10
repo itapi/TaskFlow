@@ -300,7 +300,9 @@
     "noTasksFound": "לא נמצאו משימות",
     "tryAdjustingFilters": "נסה לשנות את הסינונים או בדוק שוב מאוחר יותר",
     "tasksAssignedToYou": "משימות שהוקצו לך",
-    "never": "אף פעם"
+    "never": "אף פעם",
+    "table": "טבלה",
+    "kanban": "קנבן"
   },
   "messages": {
     "confirmDelete": "האם אתה בטוח שברצונך למחוק את זה?",

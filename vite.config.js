@@ -4,6 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/taskflow/',   // 👈 must match your Router basename
+  base: '/TaskFlow/',   // 👈 must match your Router basename
   plugins: [react(), tailwindcss()],
 })
