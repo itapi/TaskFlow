@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useUser } from '../contexts/UserContext'
+import { useUser } from '../contexts/GlobalStateContext'
 import {
   FolderKanban,
   CheckSquare,

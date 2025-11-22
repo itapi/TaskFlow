@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { FolderKanban, Plus, Edit2, Trash2, Users, CheckSquare } from 'lucide-react'
 import apiClient from '../utils/api'
 import { showSuccessToast, showErrorToast } from '../utils/toastHelpers'
-import { useModal } from '../contexts/ModalContext'
+import { useModal } from '../contexts/GlobalStateContext'
 import Loader from './Loader'
 
 function Projects() {

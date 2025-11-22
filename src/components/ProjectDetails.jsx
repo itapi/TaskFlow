@@ -7,8 +7,7 @@ import {
 } from 'lucide-react'
 import apiClient from '../utils/api'
 import { showSuccessToast, showErrorToast } from '../utils/toastHelpers'
-import { useModal } from '../contexts/ModalContext'
-import { useUser } from '../contexts/UserContext'
+import { useGlobalState } from '../contexts/GlobalStateContext'
 import Loader from './Loader'
 import { Table } from './Table/Table'
 
@@ -16,8 +15,7 @@ function ProjectDetails() {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { openModal } = useModal()
-  const { user } = useUser()
+  const { openModal, openConfirmModal } = useGlobalState()
   const [project, setProject] = useState(null)
   const [tasks, setTasks] = useState([])
   const [users, setUsers] = useState([])
@@ -64,148 +62,160 @@ function ProjectDetails() {
 
   const handleCreateTask = () => {
     openModal({
+      layout: 'form',
       title: t('tasks.createTask'),
-      fields: [
-        {
-          name: 'title',
-          label: t('tasks.taskTitle'),
-          type: 'text',
-          required: true,
-          placeholder: t('tasks.enterTaskTitle')
-        },
-        {
-          name: 'description',
-          label: t('tasks.description'),
-          type: 'textarea',
-          placeholder: t('tasks.enterTaskDescription')
-        },
-        {
-          name: 'status',
-          label: t('tasks.status'),
-          type: 'select',
-          defaultValue: 'backlog',
-          options: statuses.map(s => ({ value: s.id, label: s.label }))
-        },
-        {
-          name: 'priority',
-          label: t('tasks.priority'),
-          type: 'select',
-          defaultValue: 'medium',
-          options: [
-            { value: 'low', label: t('tasks.priorities.low') },
-            { value: 'medium', label: t('tasks.priorities.medium') },
-            { value: 'high', label: t('tasks.priorities.high') },
-            { value: 'urgent', label: t('tasks.priorities.urgent') }
-          ]
-        },
-        {
-          name: 'assigned_to',
-          label: t('tasks.assignTo'),
-          type: 'select',
-          options: [
-            { value: '', label: t('tasks.unassigned') },
-            ...users.map(u => ({ value: u.id.toString(), label: u.full_name || u.username }))
-          ]
-        },
-        {
-          name: 'due_date',
-          label: t('tasks.dueDate'),
-          type: 'date'
-        }
-      ],
-      onSubmit: async (data) => {
-        try {
-          const response = await apiClient.createTask({
-            ...data,
-            project_id: projectId
-          })
-          if (response.success) {
-            showSuccessToast(t('tasks.taskCreatedSuccess'))
-            loadProjectData()
+      size: 'lg',
+      data: {
+        fields: [
+          {
+            name: 'title',
+            label: t('tasks.taskTitle'),
+            type: 'text',
+            required: true,
+            placeholder: t('tasks.enterTaskTitle')
+          },
+          {
+            name: 'description',
+            label: t('tasks.description'),
+            type: 'textarea',
+            placeholder: t('tasks.enterTaskDescription')
+          },
+          {
+            name: 'status',
+            label: t('tasks.status'),
+            type: 'select',
+            defaultValue: 'backlog',
+            options: statuses.map(s => ({ value: s.id, label: s.label }))
+          },
+          {
+            name: 'priority',
+            label: t('tasks.priority'),
+            type: 'select',
+            defaultValue: 'medium',
+            options: [
+              { value: 'low', label: t('tasks.priorities.low') },
+              { value: 'medium', label: t('tasks.priorities.medium') },
+              { value: 'high', label: t('tasks.priorities.high') },
+              { value: 'urgent', label: t('tasks.priorities.urgent') }
+            ]
+          },
+          {
+            name: 'assigned_to',
+            label: t('tasks.assignTo'),
+            type: 'select',
+            options: [
+              { value: '', label: t('tasks.unassigned') },
+              ...users.map(u => ({ value: u.id.toString(), label: u.full_name || u.username }))
+            ]
+          },
+          {
+            name: 'due_date',
+            label: t('tasks.dueDate'),
+            type: 'date'
           }
-        } catch (error) {
-          showErrorToast(error.message || t('tasks.taskCreateFailed'))
-          throw error
+        ],
+        onSubmit: async (data) => {
+          try {
+            const response = await apiClient.createTask({
+              ...data,
+              project_id: projectId
+            })
+            if (response.success) {
+              showSuccessToast(t('tasks.taskCreatedSuccess'))
+              loadProjectData()
+            }
+          } catch (error) {
+            showErrorToast(error.message || t('tasks.taskCreateFailed'))
+            throw error
+          }
         }
-      }
+      },
+      confirmText: t('common.create'),
+      cancelText: t('common.cancel')
     })
   }
 
   const handleEditTask = (task) => {
     openModal({
+      layout: 'form',
       title: t('tasks.editTask'),
-      fields: [
-        {
-          name: 'title',
-          label: t('tasks.taskTitle'),
-          type: 'text',
-          required: true,
-          defaultValue: task.title
-        },
-        {
-          name: 'description',
-          label: t('tasks.description'),
-          type: 'textarea',
-          defaultValue: task.description || ''
-        },
-        {
-          name: 'status',
-          label: t('tasks.status'),
-          type: 'select',
-          defaultValue: task.status,
-          options: statuses.map(s => ({ value: s.id, label: s.label }))
-        },
-        {
-          name: 'priority',
-          label: t('tasks.priority'),
-          type: 'select',
-          defaultValue: task.priority,
-          options: [
-            { value: 'low', label: t('tasks.priorities.low') },
-            { value: 'medium', label: t('tasks.priorities.medium') },
-            { value: 'high', label: t('tasks.priorities.high') },
-            { value: 'urgent', label: t('tasks.priorities.urgent') }
-          ]
-        },
-        {
-          name: 'assigned_to',
-          label: t('tasks.assignTo'),
-          type: 'select',
-          defaultValue: task.assigned_to?.toString() || '',
-          options: [
-            { value: '', label: t('tasks.unassigned') },
-            ...users.map(u => ({ value: u.id.toString(), label: u.full_name || u.username }))
-          ]
-        },
-        {
-          name: 'due_date',
-          label: t('tasks.dueDate'),
-          type: 'date',
-          defaultValue: task.due_date || ''
-        }
-      ],
-      onSubmit: async (data) => {
-        try {
-          const response = await apiClient.updateTask(task.id, data)
-          if (response.success) {
-            showSuccessToast(t('tasks.taskUpdatedSuccess'))
-            loadProjectData()
+      size: 'lg',
+      data: {
+        fields: [
+          {
+            name: 'title',
+            label: t('tasks.taskTitle'),
+            type: 'text',
+            required: true,
+            defaultValue: task.title
+          },
+          {
+            name: 'description',
+            label: t('tasks.description'),
+            type: 'textarea',
+            defaultValue: task.description || ''
+          },
+          {
+            name: 'status',
+            label: t('tasks.status'),
+            type: 'select',
+            defaultValue: task.status,
+            options: statuses.map(s => ({ value: s.id, label: s.label }))
+          },
+          {
+            name: 'priority',
+            label: t('tasks.priority'),
+            type: 'select',
+            defaultValue: task.priority,
+            options: [
+              { value: 'low', label: t('tasks.priorities.low') },
+              { value: 'medium', label: t('tasks.priorities.medium') },
+              { value: 'high', label: t('tasks.priorities.high') },
+              { value: 'urgent', label: t('tasks.priorities.urgent') }
+            ]
+          },
+          {
+            name: 'assigned_to',
+            label: t('tasks.assignTo'),
+            type: 'select',
+            defaultValue: task.assigned_to?.toString() || '',
+            options: [
+              { value: '', label: t('tasks.unassigned') },
+              ...users.map(u => ({ value: u.id.toString(), label: u.full_name || u.username }))
+            ]
+          },
+          {
+            name: 'due_date',
+            label: t('tasks.dueDate'),
+            type: 'date',
+            defaultValue: task.due_date || ''
           }
-        } catch (error) {
-          showErrorToast(error.message || t('tasks.taskUpdateFailed'))
-          throw error
+        ],
+        onSubmit: async (data) => {
+          try {
+            const response = await apiClient.updateTask(task.id, data)
+            if (response.success) {
+              showSuccessToast(t('tasks.taskUpdatedSuccess'))
+              loadProjectData()
+            }
+          } catch (error) {
+            showErrorToast(error.message || t('tasks.taskUpdateFailed'))
+            throw error
+          }
         }
-      }
+      },
+      confirmText: t('common.save'),
+      cancelText: t('common.cancel')
     })
   }
 
   const handleDeleteTask = (task) => {
-    openModal({
+    openConfirmModal({
       title: t('tasks.deleteTask'),
       message: t('tasks.deleteTaskConfirm', { title: task.title }),
-      type: 'confirm',
+      variant: 'danger',
       confirmText: t('common.delete'),
-      confirmVariant: 'danger',
+      cancelText: t('common.cancel'),
       onConfirm: async () => {
         try {
           const response = await apiClient.deleteTask(task.id)
@@ -215,7 +225,6 @@ function ProjectDetails() {
           }
         } catch (error) {
           showErrorToast(error.message || t('tasks.taskDeleteFailed'))
-          throw error
         }
       }
     })
@@ -231,6 +240,24 @@ function ProjectDetails() {
     } catch (error) {
       showErrorToast(error.message || t('tasks.taskStatusUpdateFailed'))
     }
+  }
+
+  const handleViewTask = (task) => {
+    openModal({
+      layout: 'taskDetail',
+      title: task.title,
+      size: 'xl',
+      showConfirmButton: false,
+      showCancelButton: false,
+      data: {
+        task,
+        users,
+        statuses,
+        onTaskUpdate: loadProjectData,
+        onEditTask: handleEditTask,
+        onDeleteTask: handleDeleteTask
+      }
+    })
   }
 
   const getPriorityColor = (priority) => {
@@ -383,7 +410,7 @@ function ProjectDetails() {
   const tableConfig = {
     columns: tableColumns,
     data: tasks,
-    onRowClick: (task) => handleEditTask(task),
+    onRowClick: (task) => handleViewTask(task),
     tableType: 'tasks'
   }
 
@@ -526,6 +553,7 @@ function ProjectDetails() {
                     return (
                       <div
                         key={task.id}
+                        onClick={() => handleViewTask(task)}
                         className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all cursor-pointer group"
                       >
                         {/* Task Header */}
@@ -626,7 +654,8 @@ function ProjectDetails() {
           </div>
         </div>
       )}
-    </div>
+
+      </div>
   )
 }
 

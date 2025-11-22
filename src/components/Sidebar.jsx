@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useUser } from '../contexts/UserContext'
+import { useUser } from '../contexts/GlobalStateContext'
 import { LayoutDashboard, FolderKanban, CheckSquare, Users, Settings, LogOut } from 'lucide-react'
 import LanguageSwitcher from './LanguageSwitcher'
 

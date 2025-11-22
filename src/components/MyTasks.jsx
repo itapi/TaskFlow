@@ -7,8 +7,7 @@ import {
 } from 'lucide-react'
 import apiClient from '../utils/api'
 import { showSuccessToast, showErrorToast } from '../utils/toastHelpers'
-import { useModal } from '../contexts/ModalContext'
-import { useUser } from '../contexts/UserContext'
+import { useModal, useUser } from '../contexts/GlobalStateContext'
 import Loader from './Loader'
 
 function MyTasks() {

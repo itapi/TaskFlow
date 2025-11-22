@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Users as UsersIcon, Plus, Edit2, Trash2, Mail, Shield, CheckSquare } from 'lucide-react'
 import apiClient from '../utils/api'
 import { showSuccessToast, showErrorToast } from '../utils/toastHelpers'
-import { useModal } from '../contexts/ModalContext'
-import { useUser } from '../contexts/UserContext'
+import { useModal, useUser } from '../contexts/GlobalStateContext'
 import Loader from './Loader'
 
 function Users() {

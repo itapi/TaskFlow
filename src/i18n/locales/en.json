@@ -158,7 +158,16 @@
     "addComment": "Add Comment",
     "writeComment": "Write a comment...",
     "noComments": "No comments yet",
-    "edited": "Edited"
+    "beFirstToComment": "Be the first to comment on this task",
+    "edited": "Edited",
+    "send": "Send",
+    "sending": "Sending...",
+    "deleteComment": "Delete Comment",
+    "editComment": "Edit Comment",
+    "commentAdded": "Comment added successfully",
+    "commentUpdated": "Comment updated successfully",
+    "commentDeleted": "Comment deleted successfully",
+    "commentFailed": "Failed to add comment"
   },
   "activity": {
     "title": "Activity",

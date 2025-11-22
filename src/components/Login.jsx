@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { toast } from 'react-toastify'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../utils/api'
-import { useUser } from '../contexts/UserContext'
+import { useUser } from '../contexts/GlobalStateContext'
 import { CheckSquare } from 'lucide-react'
 
 function Login() {

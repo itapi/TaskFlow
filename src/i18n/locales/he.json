@@ -155,10 +155,19 @@
   },
   "comments": {
     "title": "תגובות",
-    "addComment": "הוספת תגובה",
+    "addComment": "הוסף תגובה",
     "writeComment": "כתוב תגובה...",
     "noComments": "אין תגובות עדיין",
-    "edited": "נערך"
+    "beFirstToComment": "היה הראשון להגיב על משימה זו",
+    "edited": "נערך",
+    "send": "שלח",
+    "sending": "שולח...",
+    "deleteComment": "מחק תגובה",
+    "editComment": "ערוך תגובה",
+    "commentAdded": "התגובה נוספה בהצלחה",
+    "commentUpdated": "התגובה עודכנה בהצלחה",
+    "commentDeleted": "התגובה נמחקה בהצלחה",
+    "commentFailed": "נכשל בהוספת תגובה"
   },
   "activity": {
     "title": "פעילות",

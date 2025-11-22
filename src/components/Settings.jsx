@@ -3,12 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { Settings as SettingsIcon, User, Lock, Save, AlertCircle } from 'lucide-react'
 import apiClient from '../utils/api'
 import { showSuccessToast, showErrorToast } from '../utils/toastHelpers'
-import { useUser } from '../contexts/UserContext'
+import { useUser } from '../contexts/GlobalStateContext'
 import Loader from './Loader'
 
 function Settings() {
   const { t } = useTranslation()
-  const { user, refreshUser } = useUser()
+  const { user, updateUser } = useUser()
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')
@@ -46,7 +46,7 @@ function Settings() {
 
       if (response.success) {
         showSuccessToast(t('settings.profileUpdatedSuccess'))
-        await refreshUser()
+        updateUser(profileForm)
       }
     } catch (error) {
       showErrorToast(error.message || t('settings.profileUpdateFailed'))
