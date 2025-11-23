@@ -311,7 +311,9 @@
     "tasksAssignedToYou": "Tasks assigned to you",
     "never": "Never",
     "table": "Table",
-    "kanban": "Kanban"
+    "kanban": "Kanban",
+    "noResults": "No results found",
+    "noUsersFound": "No users found"
   },
   "messages": {
     "confirmDelete": "Are you sure you want to delete this?",

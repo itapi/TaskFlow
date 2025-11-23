@@ -21,6 +21,9 @@ export const ACTIONS = {
   SET_THEME: 'SET_THEME',
   SET_LANGUAGE: 'SET_LANGUAGE',
   SET_LOADING: 'SET_LOADING',
+
+  // System users (for mentions, assignments, etc.)
+  SET_SYSTEM_USERS: 'SET_SYSTEM_USERS',
 }
 
 // Initial state
@@ -37,6 +40,10 @@ const initialState = {
   theme: 'light',
   language: 'he',
   isLoading: false,
+
+  // System users (for mentions, assignments, etc.)
+  systemUsers: [],
+  systemUsersLoaded: false,
 }
 
 // Reducer function
@@ -128,6 +135,13 @@ const globalReducer = (state, action) => {
       return {
         ...state,
         isLoading: action.payload
+      }
+
+    case ACTIONS.SET_SYSTEM_USERS:
+      return {
+        ...state,
+        systemUsers: action.payload,
+        systemUsersLoaded: true
       }
 
     default:
@@ -251,6 +265,25 @@ export const GlobalStateProvider = ({ children }) => {
     localStorage.setItem('userData', JSON.stringify(updatedUser))
   }, [state.user])
 
+  // System users helper functions
+  const fetchSystemUsers = useCallback(async () => {
+    if (state.systemUsersLoaded) return state.systemUsers
+
+    try {
+      const response = await apiClient.getUsers()
+      if (response.success) {
+        dispatch({
+          type: ACTIONS.SET_SYSTEM_USERS,
+          payload: response.data || []
+        })
+        return response.data || []
+      }
+    } catch (error) {
+      console.error('Error fetching system users:', error)
+    }
+    return []
+  }, [state.systemUsersLoaded, state.systemUsers])
+
   const value = {
     state,
     dispatch,
@@ -271,6 +304,11 @@ export const GlobalStateProvider = ({ children }) => {
     setTheme,
     setLanguage,
     setLoading,
+
+    // System users helper functions
+    fetchSystemUsers,
+    systemUsers: state.systemUsers,
+    systemUsersLoaded: state.systemUsersLoaded,
 
     // Computed user values for convenience
     isAdmin: state.user?.user_type === 'admin',
@@ -330,5 +368,16 @@ export const useUser = () => {
     isAdmin,
     userName,
     userInitials
+  }
+}
+
+// For system users (mentions, assignments, etc.)
+export const useSystemUsers = () => {
+  const { systemUsers, systemUsersLoaded, fetchSystemUsers } = useGlobalState()
+
+  return {
+    users: systemUsers,
+    loaded: systemUsersLoaded,
+    fetchUsers: fetchSystemUsers
   }
 }

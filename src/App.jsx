@@ -12,7 +12,7 @@ import Settings from './components/Settings'
 import Sidebar from './components/Sidebar'
 import GlobalModal from './components/GlobalModal'
 import Loader from './components/Loader'
-import { GlobalStateProvider, useUser } from './contexts/GlobalStateContext'
+import { GlobalStateProvider, useUser, useSystemUsers } from './contexts/GlobalStateContext'
 import './i18n/config'
 import 'react-toastify/dist/ReactToastify.css'
 import './App.css'
@@ -20,6 +20,7 @@ import './App.css'
 // Main App Component that uses GlobalStateContext
 function AppContent() {
   const { user, isLoggedIn, loading, logout } = useUser()
+  const { fetchUsers, loaded: usersLoaded } = useSystemUsers()
   const { t, i18n } = useTranslation()
   const isRTL = i18n.language === 'he'
 
@@ -28,6 +29,13 @@ function AppContent() {
     document.documentElement.dir = isRTL ? 'rtl' : 'ltr'
     document.documentElement.lang = i18n.language
   }, [i18n.language, isRTL])
+
+  // Fetch system users when logged in
+  useEffect(() => {
+    if (isLoggedIn && !usersLoaded) {
+      fetchUsers()
+    }
+  }, [isLoggedIn, usersLoaded, fetchUsers])
 
   if (loading) {
     return (

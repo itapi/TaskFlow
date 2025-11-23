@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'react-toastify'
 import { Modal } from './Modal/Modal'
+import MentionMenu from './MentionMenu'
 import apiClient from '../utils/api'
-import { useUser } from '../contexts/GlobalStateContext'
+import { useUser, useSystemUsers } from '../contexts/GlobalStateContext'
+import { useMention } from '../hooks/useMention'
 import {
   Send,
   Calendar,
@@ -28,6 +30,7 @@ export const TaskDetailModal = ({
 }) => {
   const { t } = useTranslation()
   const { user: currentUser } = useUser()
+  const { users: systemUsers } = useSystemUsers()
   const [comments, setComments] = useState([])
   const [newComment, setNewComment] = useState('')
   const [loadingComments, setLoadingComments] = useState(false)
@@ -35,6 +38,20 @@ export const TaskDetailModal = ({
   const [editingCommentId, setEditingCommentId] = useState(null)
   const [editingCommentText, setEditingCommentText] = useState('')
   const messagesEndRef = useRef(null)
+  const commentInputRef = useRef(null)
+
+  // Mention hook for @mentions in comments
+  const mention = useMention({
+    trigger: '@',
+    onMentionSelect: (user) => {
+      console.log('Mentioned user:', user)
+    }
+  })
+
+  // Debug: log mention state and users
+  useEffect(() => {
+    console.log('Mention state:', { isMenuOpen: mention.isMenuOpen, filterText: mention.filterText, systemUsers: systemUsers?.length })
+  }, [mention.isMenuOpen, mention.filterText, systemUsers])
 
   useEffect(() => {
     if (isOpen && task) {
@@ -445,21 +462,43 @@ export const TaskDetailModal = ({
 
           {/* Add Comment Input */}
           <div className="flex-shrink-0 p-3 border-t border-gray-100 bg-white">
-            <div className="flex gap-2 items-center">
-              <input
-                type="text"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    handleSendComment()
-                  }
-                }}
-                placeholder={t('comments.writeComment')}
-                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                disabled={sendingComment}
-              />
+            <div className="flex gap-2 items-center relative">
+              <div className="flex-1 relative">
+                <input
+                  ref={(el) => {
+                    commentInputRef.current = el
+                    mention.bindInput(el)
+                  }}
+                  type="text"
+                  value={newComment}
+                  onChange={(e) => {
+                    setNewComment(e.target.value)
+                    mention.handleInputChange(e)
+                  }}
+                  onKeyDown={(e) => {
+                    // Let mention handle navigation keys first
+                    if (mention.handleKeyDown(e)) return
+
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSendComment()
+                    }
+                  }}
+                  placeholder={t('comments.writeComment')}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  disabled={sendingComment}
+                />
+                <MentionMenu
+                  ref={mention.bindMenu}
+                  items={systemUsers}
+                  isOpen={mention.isMenuOpen}
+                  position={mention.menuPosition}
+                  filterText={mention.filterText}
+                  onSelect={mention.handleSelect}
+                  onClose={mention.closeMenu}
+                  emptyMessage={t('common.noUsersFound')}
+                />
+              </div>
               <button
                 onClick={handleSendComment}
                 disabled={!newComment.trim() || sendingComment}

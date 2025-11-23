@@ -1,6 +1,7 @@
 import { useState, forwardRef, useImperativeHandle } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGlobalState } from '../../../contexts/GlobalStateContext'
+import MentionInput from '../../MentionInput'
 
 export const FormLayout = forwardRef(({ data }, ref) => {
   const { t } = useTranslation()
@@ -71,7 +72,17 @@ export const FormLayout = forwardRef(({ data }, ref) => {
 
     switch (field.type) {
       case 'textarea':
-        return (
+        return field.mentions ? (
+          <MentionInput
+            multiline
+            rows={field.rows || 3}
+            value={formData[field.name] || ''}
+            onChange={(e) => handleChange(field.name, e.target.value)}
+            placeholder={field.placeholder}
+            disabled={submitting}
+            className={`resize-none ${errors[field.name] ? 'border-red-300' : ''}`}
+          />
+        ) : (
           <textarea
             {...commonProps}
             rows={field.rows || 3}
@@ -103,7 +114,17 @@ export const FormLayout = forwardRef(({ data }, ref) => {
         return <input type="password" {...commonProps} />
 
       default:
-        return <input type="text" {...commonProps} />
+        return field.mentions ? (
+          <MentionInput
+            value={formData[field.name] || ''}
+            onChange={(e) => handleChange(field.name, e.target.value)}
+            placeholder={field.placeholder}
+            disabled={submitting}
+            className={errors[field.name] ? 'border-red-300' : ''}
+          />
+        ) : (
+          <input type="text" {...commonProps} />
+        )
     }
   }
 

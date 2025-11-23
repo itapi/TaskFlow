@@ -311,7 +311,9 @@
     "tasksAssignedToYou": "משימות שהוקצו לך",
     "never": "אף פעם",
     "table": "טבלה",
-    "kanban": "קנבן"
+    "kanban": "קנבן",
+    "noResults": "לא נמצאו תוצאות",
+    "noUsersFound": "לא נמצאו משתמשים"
   },
   "messages": {
     "confirmDelete": "האם אתה בטוח שברצונך למחוק את זה?",

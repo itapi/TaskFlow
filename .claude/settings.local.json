@@ -32,7 +32,8 @@
       "Read(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main\\src\\components/**)",
       "Read(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main\\src\\components/**)",
       "Read(/C:\\Users\\itamary_binaa\\Downloads\\iFilterDashboard-main\\src\\components/**)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(nul)"
     ],
     "deny": [],
     "ask": []
