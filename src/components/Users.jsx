@@ -44,59 +44,67 @@ function Users() {
 
     openModal({
       title: t('users.createNewUser'),
-      fields: [
-        {
-          name: 'username',
-          label: t('users.username'),
-          type: 'text',
-          required: true,
-          placeholder: t('users.enterUsername')
-        },
-        {
-          name: 'full_name',
-          label: t('users.fullName'),
-          type: 'text',
-          required: true,
-          placeholder: t('users.enterFullName')
-        },
-        {
-          name: 'email',
-          label: t('users.email'),
-          type: 'email',
-          required: true,
-          placeholder: t('users.enterEmail')
-        },
-        {
-          name: 'password',
-          label: t('users.password'),
-          type: 'password',
-          required: true,
-          placeholder: t('users.enterPassword')
-        },
-        {
-          name: 'role',
-          label: t('users.role'),
-          type: 'select',
-          defaultValue: 'member',
-          options: [
-            { value: 'admin', label: t('users.roles.administrator') },
-            { value: 'manager', label: t('users.roles.manager') },
-            { value: 'member', label: t('users.roles.member') }
-          ]
-        }
-      ],
-      onSubmit: async (data) => {
-        try {
-          const response = await apiClient.createUser(data)
-          if (response.success) {
-            showSuccessToast(t('users.userCreatedSuccess'))
-            loadUsers()
+      layout: 'form',
+      size: 'md',
+      data: {
+        fields: [
+          {
+            name: 'username',
+            label: t('users.username'),
+            type: 'text',
+            required: true,
+            placeholder: t('users.enterUsername')
+          },
+          {
+            name: 'full_name',
+            label: t('users.fullName'),
+            type: 'text',
+            required: true,
+            placeholder: t('users.enterFullName')
+          },
+          {
+            name: 'email',
+            label: t('users.email'),
+            type: 'email',
+            required: true,
+            placeholder: t('users.enterEmail')
+          },
+          {
+            name: 'password',
+            label: t('users.password'),
+            type: 'password',
+            required: true,
+            placeholder: t('users.enterPassword')
+          },
+          {
+            name: 'role',
+            label: t('users.role'),
+            type: 'select',
+            defaultValue: 'member',
+            options: [
+              { value: 'admin', label: t('users.roles.administrator') },
+              { value: 'manager', label: t('users.roles.manager') },
+              { value: 'member', label: t('users.roles.member') }
+            ]
           }
-        } catch (error) {
-          showErrorToast(error.message || t('users.userCreateFailed'))
-          throw error
+        ],
+        onSubmit: async (formData) => {
+          try {
+            const response = await apiClient.createUser(formData)
+            if (response.success) {
+              showSuccessToast(t('users.userCreatedSuccess'))
+              loadUsers()
+            }
+          } catch (error) {
+            showErrorToast(error.message || t('users.userCreateFailed'))
+            throw error
+          }
         }
-      }
+      },
+      showConfirmButton: true,
+      showCancelButton: true,
+      confirmText: t('common.create'),
+      cancelText: t('common.cancel')
     })
   }
 
@@ -108,63 +116,71 @@ function Users() {
 
     openModal({
       title: t('users.editUser'),
-      fields: [
-        {
-          name: 'username',
-          label: t('users.username'),
-          type: 'text',
-          required: true,
-          defaultValue: user.username
-        },
-        {
-          name: 'full_name',
-          label: t('users.fullName'),
-          type: 'text',
-          required: true,
-          defaultValue: user.full_name || ''
-        },
-        {
-          name: 'email',
-          label: t('users.email'),
-          type: 'email',
-          required: true,
-          defaultValue: user.email || ''
-        },
-        {
-          name: 'password',
-          label: t('users.passwordLeaveEmpty'),
-          type: 'password',
-          placeholder: t('users.enterNewPassword')
-        },
-        {
-          name: 'role',
-          label: t('users.role'),
-          type: 'select',
-          defaultValue: user.role,
-          options: [
-            { value: 'admin', label: t('users.roles.administrator') },
-            { value: 'manager', label: t('users.roles.manager') },
-            { value: 'member', label: t('users.roles.member') }
-          ]
-        }
-      ],
-      onSubmit: async (data) => {
-        try {
-          // Remove password field if empty
-          if (!data.password) {
-            delete data.password
+      layout: 'form',
+      size: 'md',
+      data: {
+        fields: [
+          {
+            name: 'username',
+            label: t('users.username'),
+            type: 'text',
+            required: true,
+            defaultValue: user.username
+          },
+          {
+            name: 'full_name',
+            label: t('users.fullName'),
+            type: 'text',
+            required: true,
+            defaultValue: user.full_name || ''
+          },
+          {
+            name: 'email',
+            label: t('users.email'),
+            type: 'email',
+            required: true,
+            defaultValue: user.email || ''
+          },
+          {
+            name: 'password',
+            label: t('users.passwordLeaveEmpty'),
+            type: 'password',
+            placeholder: t('users.enterNewPassword')
+          },
+          {
+            name: 'role',
+            label: t('users.role'),
+            type: 'select',
+            defaultValue: user.role,
+            options: [
+              { value: 'admin', label: t('users.roles.administrator') },
+              { value: 'manager', label: t('users.roles.manager') },
+              { value: 'member', label: t('users.roles.member') }
+            ]
           }
+        ],
+        onSubmit: async (formData) => {
+          try {
+            // Remove password field if empty
+            if (!formData.password) {
+              delete formData.password
+            }
 
-          const response = await apiClient.updateUser(user.id, data)
-          if (response.success) {
-            showSuccessToast(t('users.userUpdatedSuccess'))
-            loadUsers()
+            const response = await apiClient.updateUser(user.id, formData)
+            if (response.success) {
+              showSuccessToast(t('users.userUpdatedSuccess'))
+              loadUsers()
+            }
+          } catch (error) {
+            showErrorToast(error.message || t('users.userUpdateFailed'))
+            throw error
           }
-        } catch (error) {
-          showErrorToast(error.message || t('users.userUpdateFailed'))
-          throw error
         }
-      }
+      },
+      showConfirmButton: true,
+      showCancelButton: true,
+      confirmText: t('common.save'),
+      cancelText: t('common.cancel')
     })
   }
 
@@ -181,10 +197,17 @@ function Users() {
 
     openModal({
       title: t('users.deleteUser'),
-      message: t('users.deleteUserConfirm', { name: user.full_name || user.username }),
-      type: 'confirm',
+      layout: 'confirmAction',
+      size: 'sm',
+      data: {
+        message: t('users.deleteUserConfirm', { name: user.full_name || user.username }),
+        variant: 'danger'
+      },
+      showConfirmButton: true,
+      showCancelButton: true,
       confirmText: t('common.delete'),
-      confirmVariant: 'danger',
+      cancelText: t('common.cancel'),
+      variant: 'danger',
       onConfirm: async () => {
         try {
           const response = await apiClient.deleteUser(user.id)

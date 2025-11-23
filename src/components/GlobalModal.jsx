@@ -24,6 +24,11 @@ const GlobalModal = () => {
 
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
+        // Don't close if Jodit popup/dialog is open - let Jodit handle Escape first
+        const joditElements = document.querySelectorAll('.jodit-popup, .jodit-dialog, .jodit-ui-dialog, .jodit-dialog__panel')
+        if (joditElements.length > 0) {
+          return
+        }
         handleCloseModal(topModal)
       }
     }
@@ -118,7 +123,20 @@ const GlobalModal = () => {
   }
 
   const handleBackdropClick = (e, modal) => {
-    if (modal.closeOnBackdropClick && !e.target.closest('[role="dialog"]')) {
+    // Don't close if clicking inside the dialog
+    if (e.target.closest('[role="dialog"]')) {
+      return
+    }
+    // Don't close if clicking on Jodit popups/dialogs (they render outside modal to body)
+    if (e.target.closest('.jodit-popup, .jodit-dialog, .jodit-ui-dialog, .jodit-dialog__panel, .jodit-popup__content')) {
+      return
+    }
+    // Don't close if any Jodit popup is open
+    const joditElements = document.querySelectorAll('.jodit-popup, .jodit-dialog, .jodit-ui-dialog, .jodit-dialog__panel')
+    if (joditElements.length > 0) {
+      return
+    }
+    if (modal.closeOnBackdropClick) {
       handleCloseModal(modal)
     }
   }
@@ -198,8 +216,8 @@ const GlobalModal = () => {
 
               {/* Body */}
               <div
-                className="overflow-y-auto"
-                style={{ maxHeight: 'calc(90vh - 140px)' }}
+                className={modal.layout === 'taskDetail' ? '' : 'overflow-y-auto'}
+                style={modal.layout === 'taskDetail' ? {} : { maxHeight: 'calc(90vh - 140px)' }}
               >
                 {currentLayout.component}
               </div>

@@ -1,0 +1,102 @@
+/* Jodit Editor Custom Styles for TaskFlow */
+
+/* Container styles */
+.jodit-wrapper {
+  direction: rtl;
+}
+
+/* Editor container */
+.jodit-container {
+  border-radius: 0.5rem !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.jodit-container:focus-within {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Toolbar styles */
+.jodit-toolbar__box {
+  background: #f9fafb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  border-radius: 0.5rem 0.5rem 0 0 !important;
+}
+
+/* Editor content area */
+.jodit-wysiwyg {
+  background: #fff !important;
+  padding: 12px !important;
+  min-height: 100px;
+}
+
+/* RTL list styles */
+.jodit-wysiwyg[dir="rtl"] ul,
+.jodit-wysiwyg[dir="rtl"] ol {
+  direction: rtl;
+  text-align: right;
+  padding-right: 30px;
+  padding-left: 0;
+}
+
+.jodit-wysiwyg[dir="rtl"] li {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Placeholder text */
+.jodit-placeholder {
+  color: #9ca3af !important;
+  font-size: 14px !important;
+}
+
+/* Comment editor - compact version */
+.jodit-comment-editor .jodit-container {
+  border-radius: 0.5rem !important;
+}
+
+.jodit-comment-editor .jodit-wysiwyg {
+  min-height: 80px !important;
+  max-height: 200px !important;
+  overflow-y: auto !important;
+}
+
+.jodit-comment-editor .jodit-toolbar__box {
+  padding: 4px !important;
+}
+
+/* Status bar */
+.jodit-status-bar {
+  background: #f9fafb !important;
+  border-top: 1px solid #e5e7eb !important;
+  display: none !important; /* Hide for cleaner look */
+}
+
+/* Popup dialogs - ensure they appear above modals */
+.jodit-popup,
+.jodit-dialog,
+.jodit-ui-dialog,
+.jodit-dialog__panel {
+  z-index: 100000 !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Jodit dialog overlay */
+.jodit-dialog__overlay {
+  z-index: 99999 !important;
+}
+
+/* Buttons */
+.jodit-ui-button {
+  border-radius: 0.25rem !important;
+}
+
+.jodit-ui-button:hover {
+  background: #e5e7eb !important;
+}
+
+/* Focus states */
+.jodit-container.jodit_focused {
+  border-color: #6366f1 !important;
+}

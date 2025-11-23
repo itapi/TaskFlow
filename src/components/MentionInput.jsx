@@ -1,4 +1,4 @@
-import { useRef, forwardRef } from 'react'
+import { useRef, forwardRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSystemUsers } from '../contexts/GlobalStateContext'
 import { useMention } from '../hooks/useMention'
@@ -31,8 +31,15 @@ const MentionInput = forwardRef(({
   ...rest
 }, ref) => {
   const { t } = useTranslation()
-  const { users: systemUsers } = useSystemUsers()
+  const { users: systemUsers, loaded: usersLoaded, fetchUsers } = useSystemUsers()
   const inputRef = useRef(null)
+
+  // Fetch system users when component mounts (if not already loaded)
+  useEffect(() => {
+    if (!usersLoaded) {
+      fetchUsers()
+    }
+  }, [usersLoaded, fetchUsers])
 
   const mention = useMention({
     trigger: '@',

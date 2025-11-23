@@ -64,7 +64,7 @@ function ProjectDetails() {
     openModal({
       layout: 'form',
       title: t('tasks.createTask'),
-      size: 'lg',
+      size: 'xl',
       data: {
         fields: [
           {
@@ -77,7 +77,8 @@ function ProjectDetails() {
           {
             name: 'description',
             label: t('tasks.description'),
-            type: 'textarea',
+            type: 'richtext',
+            mentions: true,
             placeholder: t('tasks.enterTaskDescription')
           },
           {
@@ -139,7 +140,7 @@ function ProjectDetails() {
     openModal({
       layout: 'form',
       title: t('tasks.editTask'),
-      size: 'lg',
+      size: 'xl',
       data: {
         fields: [
           {
@@ -152,7 +153,8 @@ function ProjectDetails() {
           {
             name: 'description',
             label: t('tasks.description'),
-            type: 'textarea',
+            type: 'richtext',
+            mentions: true,
             defaultValue: task.description || ''
           },
           {

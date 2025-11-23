@@ -36,88 +36,111 @@ function Projects() {
   const handleCreateProject = () => {
     openModal({
       title: t('projects.createNewProject'),
-      fields: [
-        {
-          name: 'name',
-          label: t('projects.projectName'),
-          type: 'text',
-          required: true,
-          placeholder: t('projects.enterProjectName')
-        },
-        {
-          name: 'description',
-          label: t('projects.description'),
-          type: 'textarea',
-          placeholder: t('projects.enterProjectDescription')
-        }
-      ],
-      onSubmit: async (data) => {
-        try {
-          const response = await apiClient.createProject(data)
-          if (response.success) {
-            showSuccessToast(t('projects.projectCreatedSuccess'))
-            loadProjects()
+      layout: 'form',
+      size: 'md',
+      data: {
+        fields: [
+          {
+            name: 'name',
+            label: t('projects.projectName'),
+            type: 'text',
+            required: true,
+            placeholder: t('projects.enterProjectName')
+          },
+          {
+            name: 'description',
+            label: t('projects.description'),
+            type: 'textarea',
+            placeholder: t('projects.enterProjectDescription')
           }
-        } catch (error) {
-          showErrorToast(error.message || t('projects.projectCreateFailed'))
-          throw error
+        ],
+        onSubmit: async (formData) => {
+          try {
+            const response = await apiClient.createProject(formData)
+            if (response.success) {
+              showSuccessToast(t('projects.projectCreatedSuccess'))
+              loadProjects()
+            }
+          } catch (error) {
+            showErrorToast(error.message || t('projects.projectCreateFailed'))
+            throw error
+          }
         }
-      }
+      },
+      showConfirmButton: true,
+      showCancelButton: true,
+      confirmText: t('common.create'),
+      cancelText: t('common.cancel')
     })
   }
 
   const handleEditProject = (project) => {
     openModal({
       title: t('projects.editProject'),
-      fields: [
-        {
-          name: 'name',
-          label: t('projects.projectName'),
-          type: 'text',
-          required: true,
-          defaultValue: project.name
-        },
-        {
-          name: 'description',
-          label: t('projects.description'),
-          type: 'textarea',
-          defaultValue: project.description || ''
-        },
-        {
-          name: 'status',
-          label: t('projects.status'),
-          type: 'select',
-          defaultValue: project.status || 'active',
-          options: [
-            { value: 'active', label: t('projects.statuses.active') },
-            { value: 'completed', label: t('projects.statuses.completed') },
-            { value: 'on_hold', label: t('projects.statuses.on_hold') },
-            { value: 'cancelled', label: t('projects.statuses.cancelled') }
-          ]
-        }
-      ],
-      onSubmit: async (data) => {
-        try {
-          const response = await apiClient.updateProject(project.id, data)
-          if (response.success) {
-            showSuccessToast(t('projects.projectUpdatedSuccess'))
-            loadProjects()
+      layout: 'form',
+      size: 'md',
+      data: {
+        fields: [
+          {
+            name: 'name',
+            label: t('projects.projectName'),
+            type: 'text',
+            required: true,
+            defaultValue: project.name
+          },
+          {
+            name: 'description',
+            label: t('projects.description'),
+            type: 'textarea',
+            defaultValue: project.description || ''
+          },
+          {
+            name: 'status',
+            label: t('projects.status'),
+            type: 'select',
+            defaultValue: project.status || 'active',
+            options: [
+              { value: 'active', label: t('projects.statuses.active') },
+              { value: 'completed', label: t('projects.statuses.completed') },
+              { value: 'on_hold', label: t('projects.statuses.on_hold') },
+              { value: 'cancelled', label: t('projects.statuses.cancelled') }
+            ]
           }
-        } catch (error) {
-          showErrorToast(error.message || t('projects.projectUpdateFailed'))
-          throw error
+        ],
+        onSubmit: async (formData) => {
+          try {
+            const response = await apiClient.updateProject(project.id, formData)
+            if (response.success) {
+              showSuccessToast(t('projects.projectUpdatedSuccess'))
+              loadProjects()
+            }
+          } catch (error) {
+            showErrorToast(error.message || t('projects.projectUpdateFailed'))
+            throw error
+          }
         }
-      }
+      },
+      showConfirmButton: true,
+      showCancelButton: true,
+      confirmText: t('common.save'),
+      cancelText: t('common.cancel')
     })
   }
 
   const handleDeleteProject = (project) => {
     openModal({
       title: t('projects.deleteProject'),
-      message: t('projects.deleteConfirm', { name: project.name }),
-      type: 'confirm',
+      layout: 'confirmAction',
+      size: 'sm',
+      data: {
+        message: t('projects.deleteConfirm', { name: project.name }),
+        variant: 'danger'
+      },
+      showConfirmButton: true,
+      showCancelButton: true,
       confirmText: t('common.delete'),
-      confirmVariant: 'danger',
+      cancelText: t('common.cancel'),
+      variant: 'danger',
       onConfirm: async () => {
         try {
           const response = await apiClient.deleteProject(project.id)

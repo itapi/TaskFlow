@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useUser } from '../contexts/GlobalStateContext'
-import { LayoutDashboard, FolderKanban, CheckSquare, Users, Settings, LogOut } from 'lucide-react'
+import { FolderKanban, CheckSquare, Users, Settings, LogOut } from 'lucide-react'
 import LanguageSwitcher from './LanguageSwitcher'
 
 const Sidebar = () => {
@@ -13,22 +13,16 @@ const Sidebar = () => {
 
   const menuItems = [
     {
-      id: 'dashboard',
-      path: '/dashboard',
-      name: t('navigation.dashboard'),
-      icon: LayoutDashboard
+      id: 'my-tasks',
+      path: '/my-tasks',
+      name: t('navigation.myTasks'),
+      icon: CheckSquare
     },
     {
       id: 'projects',
       path: '/projects',
       name: t('navigation.projects'),
       icon: FolderKanban
-    },
-    {
-      id: 'my-tasks',
-      path: '/my-tasks',
-      name: t('navigation.myTasks'),
-      icon: CheckSquare
     },
     {
       id: 'users',

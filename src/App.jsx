@@ -3,7 +3,6 @@ import { ToastContainer } from 'react-toastify'
 import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react'
 import Login from './components/Login'
-import Dashboard from './components/Dashboard'
 import Projects from './components/Projects'
 import ProjectDetails from './components/ProjectDetails'
 import MyTasks from './components/MyTasks'
@@ -50,13 +49,12 @@ function AppContent() {
       {!isLoggedIn ? (
         <Login />
       ) : (
-        <Router basename="/taskflow">
+        <Router basename="/TaskFlow">
           <div className="min-h-screen bg-gray-50 flex" dir={isRTL ? 'rtl' : 'ltr'}>
             <Sidebar />
             <main className="flex-1 overflow-hidden">
               <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/" element={<Navigate to="/my-tasks" replace />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:projectId" element={<ProjectDetails />} />
                 <Route path="/my-tasks" element={<MyTasks />} />

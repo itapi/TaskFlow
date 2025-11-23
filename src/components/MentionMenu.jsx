@@ -104,8 +104,6 @@ const MentionMenu = forwardRef(({
     }
   }, [isOpen, onClose])
 
-  console.log('MentionMenu render:', { isOpen, itemsCount: items?.length, filteredCount: filteredItems?.length })
-
   if (!isOpen) return null
 
   const defaultRenderItem = (item, isSelected) => (
@@ -131,8 +129,9 @@ const MentionMenu = forwardRef(({
       ref={menuRef}
       className={`absolute z-50 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden ${className}`}
       style={{
-        top: position.top,
-        left: position.left,
+        ...(position.top !== undefined ? { top: position.top } : {}),
+        ...(position.bottom !== undefined ? { bottom: position.bottom } : {}),
+        right: position.right,
         minWidth: '200px',
         maxWidth: '280px',
         maxHeight: `${maxHeight}px`
@@ -153,7 +152,11 @@ const MentionMenu = forwardRef(({
                   ? 'bg-indigo-50 text-indigo-900'
                   : 'hover:bg-gray-50'
               }`}
-              onClick={() => onSelect?.(item)}
+              onMouseDown={(e) => {
+                e.preventDefault() // Prevent editor blur
+                e.stopPropagation()
+                onSelect?.(item)
+              }}
               onMouseEnter={() => setSelectedIndex(index)}
             >
               {renderItem ? renderItem(item, index === selectedIndex) : defaultRenderItem(item, index === selectedIndex)}

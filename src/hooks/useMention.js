@@ -56,10 +56,10 @@ export const useMention = ({
         setTriggerIndex(lastTriggerPos)
         setFilterText(textAfterTrigger)
 
-        // Position menu below the input
+        // Position menu above the input (since input is often at bottom of modals)
         const input = e.target
         setMenuPosition({
-          top: input.offsetHeight + 4,
+          bottom: input.offsetHeight + 4,
           left: 0
         })
 

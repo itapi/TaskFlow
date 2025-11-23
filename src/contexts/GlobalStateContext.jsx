@@ -267,16 +267,22 @@ export const GlobalStateProvider = ({ children }) => {
 
   // System users helper functions
   const fetchSystemUsers = useCallback(async () => {
+    console.log('fetchSystemUsers called, loaded:', state.systemUsersLoaded)
     if (state.systemUsersLoaded) return state.systemUsers
 
     try {
+      console.log('Fetching users from API...')
       const response = await apiClient.getUsers()
+      console.log('API response:', response)
       if (response.success) {
+        console.log('Setting system users:', response.data?.length, 'users')
         dispatch({
           type: ACTIONS.SET_SYSTEM_USERS,
           payload: response.data || []
         })
         return response.data || []
+      } else {
+        console.error('API returned success=false:', response)
       }
     } catch (error) {
       console.error('Error fetching system users:', error)

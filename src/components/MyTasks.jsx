@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   CheckSquare, Filter, Calendar, AlertCircle,
-  FolderKanban, Edit2, Trash2, User, Clock
+  FolderKanban, Edit2, Trash2, Clock, List, LayoutGrid, Flag
 } from 'lucide-react'
 import apiClient from '../utils/api'
 import { showSuccessToast, showErrorToast } from '../utils/toastHelpers'
 import { useModal, useUser } from '../contexts/GlobalStateContext'
 import Loader from './Loader'
+import { Table } from './Table/Table'
 
 function MyTasks() {
   const navigate = useNavigate()
@@ -17,23 +18,36 @@ function MyTasks() {
   const { user } = useUser()
   const [tasks, setTasks] = useState([])
   const [projects, setProjects] = useState([])
+  const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
     status: 'all',
     priority: 'all',
     project: 'all'
   })
+  const [viewMode, setViewMode] = useState('cards') // 'cards' or 'table'
 
   useEffect(() => {
     loadData()
-  }, [])
+  }, [user?.id])
+
+  const statuses = [
+    { id: 'backlog', label: t('tasks.statuses.backlog'), color: 'gray' },
+    { id: 'not_started', label: t('tasks.statuses.not_started'), color: 'yellow' },
+    { id: 'in_progress', label: t('tasks.statuses.in_progress'), color: 'blue' },
+    { id: 'review', label: t('tasks.statuses.review'), color: 'purple' },
+    { id: 'done', label: t('tasks.statuses.done'), color: 'green' }
+  ]
 
   const loadData = async () => {
+    if (!user?.id) return
+
     try {
       setLoading(true)
-      const [tasksRes, projectsRes] = await Promise.all([
-        apiClient.getMyTasks(),
-        apiClient.getProjects()
+      const [tasksRes, projectsRes, usersRes] = await Promise.all([
+        apiClient.getTasks({ assigned_to: user.id }),
+        apiClient.getProjects(),
+        apiClient.getUsers()
       ])
 
       if (tasksRes.success) {
@@ -41,6 +55,9 @@ function MyTasks() {
       }
       if (projectsRes.success) {
         setProjects(projectsRes.data || [])
+      }
+      if (usersRes.success) {
+        setUsers(usersRes.data || [])
       }
     } catch (error) {
       console.error('Failed to load tasks:', error)
@@ -53,74 +70,89 @@ function MyTasks() {
   const handleEditTask = (task) => {
     openModal({
       title: t('tasks.editTask'),
-      fields: [
-        {
-          name: 'title',
-          label: t('tasks.taskTitle'),
-          type: 'text',
-          required: true,
-          defaultValue: task.title
-        },
-        {
-          name: 'description',
-          label: t('tasks.description'),
-          type: 'textarea',
-          defaultValue: task.description || ''
-        },
-        {
-          name: 'status',
-          label: t('tasks.status'),
-          type: 'select',
-          defaultValue: task.status,
-          options: [
-            { value: 'backlog', label: t('tasks.statuses.backlog') },
-            { value: 'not_started', label: t('tasks.statuses.not_started') },
-            { value: 'in_progress', label: t('tasks.statuses.in_progress') },
-            { value: 'review', label: t('tasks.statuses.review') },
-            { value: 'done', label: t('tasks.statuses.done') }
-          ]
-        },
-        {
-          name: 'priority',
-          label: t('tasks.priority'),
-          type: 'select',
-          defaultValue: task.priority,
-          options: [
-            { value: 'low', label: t('tasks.priorities.low') },
-            { value: 'medium', label: t('tasks.priorities.medium') },
-            { value: 'high', label: t('tasks.priorities.high') },
-            { value: 'urgent', label: t('tasks.priorities.urgent') }
-          ]
-        },
-        {
-          name: 'due_date',
-          label: t('tasks.dueDate'),
-          type: 'date',
-          defaultValue: task.due_date || ''
-        }
-      ],
-      onSubmit: async (data) => {
-        try {
-          const response = await apiClient.updateTask(task.id, data)
-          if (response.success) {
-            showSuccessToast(t('tasks.taskUpdatedSuccess'))
-            loadData()
+      layout: 'form',
+      size: 'lg',
+      data: {
+        fields: [
+          {
+            name: 'title',
+            label: t('tasks.taskTitle'),
+            type: 'text',
+            required: true,
+            defaultValue: task.title
+          },
+          {
+            name: 'description',
+            label: t('tasks.description'),
+            type: 'textarea',
+            defaultValue: task.description || ''
+          },
+          {
+            name: 'status',
+            label: t('tasks.status'),
+            type: 'select',
+            defaultValue: task.status,
+            options: [
+              { value: 'backlog', label: t('tasks.statuses.backlog') },
+              { value: 'not_started', label: t('tasks.statuses.not_started') },
+              { value: 'in_progress', label: t('tasks.statuses.in_progress') },
+              { value: 'review', label: t('tasks.statuses.review') },
+              { value: 'done', label: t('tasks.statuses.done') }
+            ]
+          },
+          {
+            name: 'priority',
+            label: t('tasks.priority'),
+            type: 'select',
+            defaultValue: task.priority,
+            options: [
+              { value: 'low', label: t('tasks.priorities.low') },
+              { value: 'medium', label: t('tasks.priorities.medium') },
+              { value: 'high', label: t('tasks.priorities.high') },
+              { value: 'urgent', label: t('tasks.priorities.urgent') }
+            ]
+          },
+          {
+            name: 'due_date',
+            label: t('tasks.dueDate'),
+            type: 'date',
+            defaultValue: task.due_date || ''
           }
-        } catch (error) {
-          showErrorToast(error.message || t('tasks.taskUpdateFailed'))
-          throw error
+        ],
+        onSubmit: async (formData) => {
+          try {
+            const response = await apiClient.updateTask(task.id, formData)
+            if (response.success) {
+              showSuccessToast(t('tasks.taskUpdatedSuccess'))
+              loadData()
+            }
+          } catch (error) {
+            showErrorToast(error.message || t('tasks.taskUpdateFailed'))
+            throw error
+          }
         }
-      }
+      },
+      showConfirmButton: true,
+      showCancelButton: true,
+      confirmText: t('common.save'),
+      cancelText: t('common.cancel')
     })
   }
 
   const handleDeleteTask = (task) => {
     openModal({
       title: t('tasks.deleteTask'),
-      message: t('tasks.deleteTaskConfirm', { title: task.title }),
-      type: 'confirm',
+      layout: 'confirmAction',
+      size: 'sm',
+      data: {
+        message: t('tasks.deleteTaskConfirm', { title: task.title }),
+        variant: 'danger'
+      },
+      showConfirmButton: true,
+      showCancelButton: true,
       confirmText: t('common.delete'),
-      confirmVariant: 'danger',
+      cancelText: t('common.cancel'),
+      variant: 'danger',
       onConfirm: async () => {
         try {
           const response = await apiClient.deleteTask(task.id)
@@ -146,6 +178,24 @@ function MyTasks() {
     } catch (error) {
       showErrorToast(error.message || t('tasks.taskStatusUpdateFailed'))
     }
+  }
+
+  const handleViewTask = (task) => {
+    openModal({
+      layout: 'taskDetail',
+      title: task.title,
+      size: 'xl',
+      showConfirmButton: false,
+      showCancelButton: false,
+      data: {
+        task,
+        users,
+        statuses,
+        onTaskUpdate: loadData,
+        onEditTask: handleEditTask,
+        onDeleteTask: handleDeleteTask
+      }
+    })
   }
 
   const getStatusColor = (status) => {
@@ -202,6 +252,112 @@ function MyTasks() {
     return projects.find(p => p.id === projectId)
   }
 
+  const getAssignedUser = (userId) => {
+    return users.find(u => u.id === userId)
+  }
+
+  // Table columns configuration
+  const tableColumns = [
+    {
+      id: 'title',
+      key: 'title',
+      label: t('tasks.taskTitle'),
+      type: 'custom',
+      render: (row) => (
+        <div className="font-medium text-gray-900">{row.title}</div>
+      )
+    },
+    {
+      id: 'project',
+      key: 'project_id',
+      label: t('common.project'),
+      type: 'custom',
+      render: (row) => {
+        const project = getProject(row.project_id)
+        return project ? (
+          <span className="text-sm text-gray-600">{project.name}</span>
+        ) : (
+          <span className="text-gray-400 text-sm">-</span>
+        )
+      }
+    },
+    {
+      id: 'status',
+      key: 'status',
+      label: t('tasks.status'),
+      type: 'custom',
+      render: (row) => {
+        const colorClasses = {
+          backlog: 'bg-gray-100 text-gray-800',
+          not_started: 'bg-yellow-100 text-yellow-800',
+          in_progress: 'bg-blue-100 text-blue-800',
+          review: 'bg-purple-100 text-purple-800',
+          done: 'bg-green-100 text-green-800'
+        }
+        return (
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClasses[row.status] || 'bg-gray-100 text-gray-800'}`}>
+            {getStatusLabel(row.status)}
+          </span>
+        )
+      }
+    },
+    {
+      id: 'priority',
+      key: 'priority',
+      label: t('tasks.priority'),
+      type: 'custom',
+      render: (row) => (
+        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium capitalize border ${getPriorityColor(row.priority)}`}>
+          <Flag className="w-3 h-3" />
+          {t(`tasks.priorities.${row.priority}`)}
+        </span>
+      )
+    },
+    {
+      id: 'due_date',
+      key: 'due_date',
+      label: t('tasks.dueDate'),
+      type: 'custom',
+      render: (row) => {
+        const dueDate = formatDate(row.due_date)
+        if (!dueDate) {
+          return <span className="text-gray-400 text-sm">-</span>
+        }
+        return (
+          <div className={`flex items-center space-x-1 text-xs ${
+            dueDate.isOverdue ? 'text-red-600 font-medium' : 'text-gray-500'
+          }`}>
+            <Calendar className="w-3 h-3" />
+            <span>{dueDate.formatted}</span>
+          </div>
+        )
+      }
+    }
+  ]
+
+  // Table configuration
+  const tableConfig = {
+    columns: tableColumns,
+    onRowClick: (row) => handleViewTask(row),
+    actions: [
+      {
+        id: 'edit',
+        icon: Edit2,
+        label: t('common.edit'),
+        onClick: (row) => handleEditTask(row),
+        className: 'text-gray-600 hover:text-indigo-600'
+      },
+      {
+        id: 'delete',
+        icon: Trash2,
+        label: t('common.delete'),
+        onClick: (row) => handleDeleteTask(row),
+        className: 'text-gray-600 hover:text-red-600'
+      }
+    ],
+    emptyMessage: t('common.noTasksFound')
+  }
+
   const filteredTasks = tasks.filter(task => {
     if (filters.status !== 'all' && task.status !== filters.status) return false
     if (filters.priority !== 'all' && task.priority !== filters.priority) return false
@@ -237,7 +393,10 @@ function MyTasks() {
     const project = getProject(task.project_id)
 
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all group">
+      <div
+        onClick={() => handleViewTask(task)}
+        className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all group cursor-pointer"
+      >
         {/* Task Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 pr-2">
@@ -253,14 +412,20 @@ function MyTasks() {
           </div>
           <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
-              onClick={() => handleEditTask(task)}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleEditTask(task)
+              }}
               className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
               title={t('tasks.editTaskTitle')}
             >
               <Edit2 className="w-4 h-4" />
             </button>
             <button
-              onClick={() => handleDeleteTask(task)}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleDeleteTask(task)
+              }}
               className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               title={t('tasks.deleteTaskTitle')}
             >
@@ -271,9 +436,10 @@ function MyTasks() {
 
         {/* Task Description */}
         {task.description && (
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-            {task.description}
-          </p>
+          <div
+            className="text-sm text-gray-600 mb-3 line-clamp-2 prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: task.description }}
+          />
         )}
 
         {/* Task Meta */}
@@ -281,7 +447,10 @@ function MyTasks() {
           <div className="flex items-center space-x-3">
             {project && (
               <button
-                onClick={() => navigate(`/projects/${project.id}`)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigate(`/projects/${project.id}`)
+                }}
                 className="flex items-center space-x-1 text-gray-500 hover:text-indigo-600 transition-colors"
               >
                 <FolderKanban className="w-4 h-4" />
@@ -360,6 +529,33 @@ function MyTasks() {
               <p className="text-gray-600">{t('common.tasksAssignedToYou')}</p>
             </div>
           </div>
+          {/* View Toggle */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-colors ${
+                viewMode === 'cards'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title={t('common.cards')}
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span className="text-sm font-medium">{t('common.cards')}</span>
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-colors ${
+                viewMode === 'table'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title={t('common.table')}
+            >
+              <List className="w-4 h-4" />
+              <span className="text-sm font-medium">{t('common.table')}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -415,7 +611,7 @@ function MyTasks() {
         </div>
       </div>
 
-      {/* Tasks by Category */}
+      {/* Tasks Display */}
       {filteredTasks.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -424,7 +620,16 @@ function MyTasks() {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('common.noTasksFound')}</h3>
           <p className="text-gray-600">{t('common.tryAdjustingFilters')}</p>
         </div>
+      ) : viewMode === 'table' ? (
+        /* Table View */
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <Table
+            tableConfig={tableConfig}
+            data={filteredTasks}
+          />
+        </div>
       ) : (
+        /* Cards View - Grouped by date */
         <>
           <TaskSection
             title={t('common.overdue')}

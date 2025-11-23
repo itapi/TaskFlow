@@ -1,8 +1,11 @@
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'react-toastify'
+import JoditEditor from 'jodit-react'
 import apiClient from '../../../utils/api'
-import { useGlobalState } from '../../../contexts/GlobalStateContext'
+import { useGlobalState, useSystemUsers } from '../../../contexts/GlobalStateContext'
+import { useMention } from '../../../hooks/useMention'
+import MentionMenu from '../../MentionMenu'
 import {
   Send,
   Calendar,
@@ -12,10 +15,12 @@ import {
   Edit2,
   Trash2
 } from 'lucide-react'
+import '../../jodit.css'
 
 export const TaskDetailLayout = forwardRef(({ data }, ref) => {
   const { t } = useTranslation()
   const { state, closeModal } = useGlobalState()
+  const { users: systemUsers, loaded: usersLoaded, fetchUsers } = useSystemUsers()
   const currentUser = state.user
 
   const { task, users = [], statuses = [], onTaskUpdate, onEditTask, onDeleteTask } = data
@@ -27,6 +32,208 @@ export const TaskDetailLayout = forwardRef(({ data }, ref) => {
   const [editingCommentId, setEditingCommentId] = useState(null)
   const [editingCommentText, setEditingCommentText] = useState('')
   const messagesEndRef = useRef(null)
+  const commentInputRef = useRef(null)
+  const commentEditorRef = useRef(null)
+
+  // Mention state for Jodit integration
+  const [mentionOpen, setMentionOpen] = useState(false)
+  const [mentionFilter, setMentionFilter] = useState('')
+  const [mentionPosition, setMentionPosition] = useState({ top: 0, right: 0 })
+  const mentionStartPos = useRef(null)
+  const joditInstanceRef = useRef(null)
+  const mentionMenuRef = useRef(null)
+
+  // Handle mention selection - insert into Jodit editor
+  const handleMentionSelect = (user) => {
+    const editor = joditInstanceRef.current
+    if (!editor) {
+      console.error('No editor instance')
+      return
+    }
+
+    // Capture current filter text before state update
+    const currentFilter = mentionFilter
+    const mentionHtml = `<span class="mention" data-user-id="${user.id}" contenteditable="false" style="background-color: #e0e7ff; color: #4338ca; padding: 2px 6px; border-radius: 4px; font-weight: 500;">@${user.full_name || user.username}</span>&nbsp;`
+
+    // Close menu first
+    setMentionOpen(false)
+    setMentionFilter('')
+    mentionStartPos.current = null
+
+    // Use setTimeout to ensure the menu closes before we manipulate the editor
+    setTimeout(() => {
+      try {
+        // Get current content
+        let content = editor.value || ''
+
+        // Find the last occurrence of @filter and replace it
+        const searchText = '@' + currentFilter
+        const lastIndex = content.lastIndexOf(searchText)
+
+        if (lastIndex !== -1) {
+          // Replace the @filter text with the mention HTML
+          content = content.substring(0, lastIndex) + mentionHtml + content.substring(lastIndex + searchText.length)
+        } else {
+          // Fallback: just append
+          content = content + mentionHtml
+        }
+
+        // Set the value
+        if (typeof editor.setEditorValue === 'function') {
+          editor.setEditorValue(content)
+        } else {
+          editor.value = content
+        }
+
+        // Focus and update React state
+        editor.focus()
+        setNewComment(content)
+      } catch (err) {
+        console.error('Error inserting mention:', err)
+      }
+    }, 10)
+  }
+
+  // Close mention menu
+  const closeMentionMenu = () => {
+    setMentionOpen(false)
+    setMentionFilter('')
+    mentionStartPos.current = null
+  }
+
+  // Refs to hold current state values for use in Jodit events (to avoid stale closures)
+  const mentionOpenRef = useRef(mentionOpen)
+  const mentionFilterRef = useRef(mentionFilter)
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    mentionOpenRef.current = mentionOpen
+  }, [mentionOpen])
+
+  useEffect(() => {
+    mentionFilterRef.current = mentionFilter
+  }, [mentionFilter])
+
+  // Compact Jodit config for comments - no state dependencies to prevent re-init
+  const commentEditorConfig = useMemo(() => ({
+    direction: 'rtl',
+    language: 'he',
+    toolbarAdaptive: false,
+    toolbarSticky: false,
+    showCharsCounter: false,
+    showWordsCounter: false,
+    showXPathInStatusbar: false,
+    minHeight: 120,
+    maxHeight: 200,
+    enter: 'DIV',
+    placeholder: t('comments.writeComment'),
+    buttons: [
+      'bold', 'italic', 'underline', '|',
+      'ul', 'ol', '|',
+      'link', '|',
+      'eraser'
+    ],
+    buttonsMD: [
+      'bold', 'italic', '|',
+      'ul', 'ol', '|',
+      'link'
+    ],
+    buttonsSM: [
+      'bold', 'italic', '|',
+      'ul', 'ol'
+    ],
+    buttonsXS: [
+      'bold', 'italic', 'ul'
+    ],
+    uploader: {
+      insertImageAsBase64URI: true
+    },
+    style: {
+      font: '14px Arial, sans-serif'
+    },
+    events: {
+      afterInit: (editor) => {
+        joditInstanceRef.current = editor
+      },
+      keyup: (e) => {
+        const editor = joditInstanceRef.current
+        if (!editor) return
+
+        // Get text before cursor to detect @mention
+        const sel = editor.editorWindow.getSelection()
+        if (!sel || sel.rangeCount === 0) return
+
+        const range = sel.getRangeAt(0)
+        const textNode = range.startContainer
+
+        if (textNode.nodeType === Node.TEXT_NODE) {
+          const text = textNode.textContent.substring(0, range.startOffset)
+          const lastAtIndex = text.lastIndexOf('@')
+
+          if (lastAtIndex !== -1) {
+            const afterAt = text.substring(lastAtIndex + 1)
+            // Check if there's no space after @ (still typing mention)
+            if (!/\s/.test(afterAt)) {
+              // Open mention menu
+              if (!mentionStartPos.current) {
+                mentionStartPos.current = lastAtIndex
+              }
+              setMentionFilter(afterAt)
+              setMentionOpen(true)
+
+              // Calculate position for menu (RTL - use right positioning)
+              const editorRect = editor.container.getBoundingClientRect()
+              const selection = editor.editorWindow.getSelection()
+              if (selection.rangeCount > 0) {
+                const rangeRect = selection.getRangeAt(0).getBoundingClientRect()
+                setMentionPosition({
+                  top: rangeRect.bottom - editorRect.top + 5,
+                  right: editorRect.right - rangeRect.right
+                })
+              }
+              return
+            }
+          }
+        }
+
+        // Close menu if no valid mention context (use ref to get current value)
+        if (mentionOpenRef.current) {
+          closeMentionMenu()
+        }
+      },
+      keydown: (e) => {
+        // Handle keyboard navigation for mention menu (use ref to get current value)
+        if (mentionOpenRef.current && mentionMenuRef.current) {
+          const handled = mentionMenuRef.current.handleKeyDown(e)
+          if (handled) {
+            e.preventDefault()
+            return
+          }
+        }
+
+        // Handle Escape to close mention menu
+        if (e.key === 'Escape' && mentionOpenRef.current) {
+          e.preventDefault()
+          closeMentionMenu()
+        }
+      }
+    }
+  }), [t]) // Only depend on t, not on mention state
+
+  // Mention hook for @mentions in comments
+  const mention = useMention({
+    trigger: '@',
+    onMentionSelect: (user) => {
+      console.log('Mentioned user:', user)
+    }
+  })
+
+  // Fetch system users for mentions
+  useEffect(() => {
+    if (!usersLoaded) {
+      fetchUsers()
+    }
+  }, [usersLoaded, fetchUsers])
 
   useImperativeHandle(ref, () => ({
     submitForm: () => {
@@ -65,8 +272,15 @@ export const TaskDetailLayout = forwardRef(({ data }, ref) => {
     }
   }
 
+  // Helper to check if HTML content is empty
+  const isHtmlEmpty = (html) => {
+    if (!html) return true
+    const stripped = html.replace(/<[^>]*>/g, '').trim()
+    return stripped.length === 0
+  }
+
   const handleSendComment = async () => {
-    if (!newComment.trim() || !task || sendingComment) return
+    if (isHtmlEmpty(newComment) || !task || sendingComment) return
 
     try {
       setSendingComment(true)
@@ -247,13 +461,13 @@ export const TaskDetailLayout = forwardRef(({ data }, ref) => {
           {/* Comment Text or Edit Input */}
           {isEditing ? (
             <div className="mt-2">
-              <textarea
-                value={editingCommentText}
-                onChange={(e) => setEditingCommentText(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                rows={2}
-                autoFocus
-              />
+              <div className="jodit-comment-editor">
+                <JoditEditor
+                  value={editingCommentText}
+                  config={commentEditorConfig}
+                  onBlur={(content) => setEditingCommentText(content)}
+                />
+              </div>
               <div className="flex items-center gap-2 mt-2">
                 <button
                   onClick={() => handleEditComment(comment.id)}
@@ -270,9 +484,10 @@ export const TaskDetailLayout = forwardRef(({ data }, ref) => {
               </div>
             </div>
           ) : (
-            <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">
-              {comment.comment}
-            </p>
+            <div
+              className="mt-1 text-sm text-gray-700 prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: comment.comment }}
+            />
           )}
         </div>
       </div>
@@ -280,9 +495,9 @@ export const TaskDetailLayout = forwardRef(({ data }, ref) => {
   }
 
   return (
-    <div className="flex flex-col" style={{ height: '70vh' }}>
-      {/* Task Details Header - Compact */}
-      <div className="flex-shrink-0 p-4 border-b border-gray-100 bg-white">
+    <div className="flex flex-col h-full" style={{ height: 'calc(90vh - 180px)', minHeight: '400px' }}>
+      {/* Task Details Header - Compact with max height */}
+      <div className="flex-shrink-0 p-4 border-b border-gray-100 bg-white overflow-y-auto" style={{ maxHeight: '35%' }}>
         {/* Actions */}
         <div className="flex items-center justify-end gap-2 mb-3">
           {onEditTask && (
@@ -387,15 +602,16 @@ export const TaskDetailLayout = forwardRef(({ data }, ref) => {
             <label className="text-xs text-gray-500 uppercase tracking-wider">
               {t('tasks.description')}
             </label>
-            <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap line-clamp-3">
-              {task.description}
-            </p>
+            <div
+              className="mt-1 text-sm text-gray-700 prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: task.description }}
+            />
           </div>
         )}
       </div>
 
-      {/* Comments Section - Takes remaining space */}
-      <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+      {/* Comments Section - Takes remaining space (min 60%) */}
+      <div className="flex-1 flex flex-col min-h-0" style={{ minHeight: '60%' }}>
         {/* Comments Header */}
         <div className="flex-shrink-0 px-4 py-2 bg-gray-50 border-b border-gray-100">
           <div className="flex items-center gap-2">
@@ -410,7 +626,7 @@ export const TaskDetailLayout = forwardRef(({ data }, ref) => {
         </div>
 
         {/* Comments List */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 min-h-[200px]">
+        <div className="flex-1 overflow-y-auto px-4 py-3">
           {loadingComments ? (
             <div className="flex items-center justify-center py-8">
               <div className="flex items-center gap-2">
@@ -435,26 +651,31 @@ export const TaskDetailLayout = forwardRef(({ data }, ref) => {
 
         {/* Add Comment Input */}
         <div className="flex-shrink-0 p-3 border-t border-gray-100 bg-white">
-          <div className="flex gap-2 items-center">
-            <input
-              type="text"
+          <div className="jodit-comment-editor relative">
+            <JoditEditor
+              ref={commentEditorRef}
               value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  handleSendComment()
-                }
-              }}
-              placeholder={t('comments.writeComment')}
-              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              disabled={sendingComment}
+              config={commentEditorConfig}
+              onBlur={(content) => setNewComment(content)}
             />
+            {/* Mention Menu for Jodit */}
+            <MentionMenu
+              ref={mentionMenuRef}
+              items={systemUsers}
+              isOpen={mentionOpen}
+              position={mentionPosition}
+              filterText={mentionFilter}
+              onSelect={handleMentionSelect}
+              onClose={closeMentionMenu}
+              emptyMessage={t('common.noUsersFound')}
+            />
+          </div>
+          <div className="flex justify-end mt-2">
             <button
               onClick={handleSendComment}
-              disabled={!newComment.trim() || sendingComment}
+              disabled={isHtmlEmpty(newComment) || sendingComment}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                !newComment.trim() || sendingComment
+                isHtmlEmpty(newComment) || sendingComment
                   ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : 'bg-indigo-600 text-white hover:bg-indigo-700'
               }`}
@@ -462,7 +683,10 @@ export const TaskDetailLayout = forwardRef(({ data }, ref) => {
               {sendingComment ? (
                 <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
               ) : (
-                <Send className="w-4 h-4" />
+                <>
+                  <Send className="w-4 h-4" />
+                  <span>{t('comments.send')}</span>
+                </>
               )}
             </button>
           </div>
