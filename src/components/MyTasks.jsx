@@ -11,7 +11,7 @@ import { useModal, useUser } from '../contexts/GlobalStateContext'
 import Loader from './Loader'
 import { Table } from './Table/Table'
 
-function MyTasks() {
+function MyTasks({ userId = null, viewingUser = null }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { openModal } = useModal()
@@ -27,9 +27,13 @@ function MyTasks() {
   })
   const [viewMode, setViewMode] = useState('cards') // 'cards' or 'table'
 
+  // Use provided userId or current user's id
+  const targetUserId = userId || user?.id
+  const isViewingOtherUser = userId && userId !== user?.id
+
   useEffect(() => {
     loadData()
-  }, [user?.id])
+  }, [targetUserId])
 
   const statuses = [
     { id: 'backlog', label: t('tasks.statuses.backlog'), color: 'gray' },
@@ -40,12 +44,12 @@ function MyTasks() {
   ]
 
   const loadData = async () => {
-    if (!user?.id) return
+    if (!targetUserId) return
 
     try {
       setLoading(true)
       const [tasksRes, projectsRes, usersRes] = await Promise.all([
-        apiClient.getTasks({ assigned_to: user.id }),
+        apiClient.getTasks({ assigned_to: targetUserId }),
         apiClient.getProjects(),
         apiClient.getUsers()
       ])
@@ -525,8 +529,16 @@ function MyTasks() {
               <CheckSquare className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{t('tasks.myTasks')}</h1>
-              <p className="text-gray-600">{t('common.tasksAssignedToYou')}</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {isViewingOtherUser && viewingUser
+                  ? `${viewingUser.full_name || viewingUser.username}'s ${t('tasks.myTasks')}`
+                  : t('tasks.myTasks')}
+              </h1>
+              <p className="text-gray-600">
+                {isViewingOtherUser && viewingUser
+                  ? t('common.tasksAssignedToUser', { name: viewingUser.full_name || viewingUser.username })
+                  : t('common.tasksAssignedToYou')}
+              </p>
             </div>
           </div>
           {/* View Toggle */}

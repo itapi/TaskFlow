@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Users as UsersIcon, Plus, Edit2, Trash2, Mail, Shield, CheckSquare } from 'lucide-react'
 import apiClient from '../utils/api'
@@ -7,6 +8,7 @@ import { useModal, useUser } from '../contexts/GlobalStateContext'
 import Loader from './Loader'
 
 function Users() {
+  const navigate = useNavigate()
   const { t } = useTranslation()
   const { openModal } = useModal()
   const { user: currentUser } = useUser()
@@ -314,7 +316,8 @@ function Users() {
           {users.map((user) => (
             <div
               key={user.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden group"
+              onClick={() => navigate(`/users/${user.id}/tasks`)}
+              className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden group cursor-pointer"
             >
               {/* User Header */}
               <div className="p-6 border-b border-gray-100">
@@ -335,14 +338,20 @@ function Users() {
                   {isAdmin() && user.id !== currentUser?.id && (
                     <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
-                        onClick={() => handleEditUser(user)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleEditUser(user)
+                        }}
                         className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                         title={t('users.editUserTitle')}
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDeleteUser(user)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeleteUser(user)
+                        }}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title={t('users.deleteUserTitle')}
                       >

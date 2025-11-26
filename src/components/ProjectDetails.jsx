@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  ArrowLeft, Plus, Edit2, Trash2, Calendar, User,
+  ArrowRight, Plus, Edit2, Trash2, Calendar, User,
   AlertCircle, MessageSquare, Activity, LayoutGrid, List
 } from 'lucide-react'
 import apiClient from '../utils/api'
@@ -449,7 +449,7 @@ function ProjectDetails() {
             onClick={() => navigate('/projects')}
             className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowRight className="w-5 h-5" />
             <span>{t('tasks.backToProjects')}</span>
           </button>
         </div>

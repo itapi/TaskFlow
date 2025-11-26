@@ -7,6 +7,7 @@ import Projects from './components/Projects'
 import ProjectDetails from './components/ProjectDetails'
 import MyTasks from './components/MyTasks'
 import Users from './components/Users'
+import UserTasks from './components/UserTasks'
 import Settings from './components/Settings'
 import Sidebar from './components/Sidebar'
 import GlobalModal from './components/GlobalModal'
@@ -59,6 +60,7 @@ function AppContent() {
                 <Route path="/projects/:projectId" element={<ProjectDetails />} />
                 <Route path="/my-tasks" element={<MyTasks />} />
                 <Route path="/users" element={<Users />} />
+                <Route path="/users/:userId/tasks" element={<UserTasks />} />
                 <Route path="/settings" element={<Settings />} />
               </Routes>
             </main>
