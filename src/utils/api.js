@@ -240,6 +240,16 @@ class ApiClient {
   async getStats() {
     return this.get(`${this.apiURL}/stats`);
   }
+
+  // ========== Email API ==========
+  async sendEmail(to, subject, message, replyTo = null) {
+    return this.post(`${this.baseURL}/send_mail.php`, {
+      to,
+      subject,
+      message,
+      replyTo: replyTo || to
+    });
+  }
 }
 
 // Create a singleton instance
