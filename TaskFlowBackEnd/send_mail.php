@@ -46,7 +46,7 @@ function send_mail($to, $subject, $message, $replyTo = null) {
         $mail->Port = 587;
         $mail->CharSet = 'UTF-8';
 
-        $mail->setFrom('itapi@ikosher.me', 'iFilter');
+        $mail->setFrom('itapi@ikosher.me', 'TaskFlow');
         $mail->addAddress($to);
         $mail->addReplyTo($replyTo);
 
