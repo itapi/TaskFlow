@@ -3,15 +3,15 @@ class ApiClient {
     this.baseURL = baseURL;
     this.apiURL = `${baseURL}/api`;
     this.authURL = `${baseURL}`;
-    this.token = localStorage.getItem('authToken');
+    this.token = localStorage.getItem('TaskFlow_authToken');
   }
 
   setToken(token) {
     this.token = token;
     if (token) {
-      localStorage.setItem('authToken', token);
+      localStorage.setItem('TaskFlow_authToken', token);
     } else {
-      localStorage.removeItem('authToken');
+      localStorage.removeItem('TaskFlow_authToken');
     }
   }
 
@@ -21,7 +21,7 @@ class ApiClient {
 
   clearToken() {
     this.token = null;
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('TaskFlow_authToken');
   }
 
   async request(url, options = {}) {

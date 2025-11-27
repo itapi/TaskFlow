@@ -7,7 +7,7 @@ function LanguageSwitcher() {
   const toggleLanguage = () => {
     const newLang = i18n.language === 'en' ? 'he' : 'en'
     i18n.changeLanguage(newLang)
-    localStorage.setItem('language', newLang)
+    localStorage.setItem('TaskFlow_language', newLang)
   }
 
   return (

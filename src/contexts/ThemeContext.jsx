@@ -14,7 +14,7 @@ export const useTheme = () => {
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
     // Get saved theme from localStorage or default to 'light'
-    const savedTheme = localStorage.getItem('theme')
+    const savedTheme = localStorage.getItem('TaskFlow_theme')
     return savedTheme || 'light'
   })
 
@@ -25,7 +25,7 @@ export const ThemeProvider = ({ children }) => {
     root.classList.add(theme)
 
     // Save theme to localStorage
-    localStorage.setItem('theme', theme)
+    localStorage.setItem('TaskFlow_theme', theme)
   }, [theme])
 
   const toggleTheme = () => {

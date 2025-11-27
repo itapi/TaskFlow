@@ -4,7 +4,7 @@ import en from './locales/en.json'
 import he from './locales/he.json'
 
 // Get saved language from localStorage or default to Hebrew
-const savedLanguage = localStorage.getItem('language') || 'he'
+const savedLanguage = localStorage.getItem('TaskFlow_language') || 'he'
 
 i18n
   .use(initReactI18next)
